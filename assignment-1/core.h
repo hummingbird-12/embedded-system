@@ -1,7 +1,8 @@
 #ifndef _CORE_H_INCLUDED_
 #define _CORE_H_INCLUDED_
 
-#include <fcntl.h>  // FIXME: REMOVE LATER
+#include <fcntl.h>
+#include <linux/input.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
