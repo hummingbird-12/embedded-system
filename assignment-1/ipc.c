@@ -32,7 +32,8 @@ int getSemaphore() {
     union semun op;
     op.val = 0;
 
-    for (int i = 0; i < SEM_CNT; i++) {
+    int i;
+    for (i = 0; i < SEM_CNT; i++) {
         if (semctl(semID, i, SETVAL, op) == -1) {
             throwError("Error while setting up semaphore!");
         }
