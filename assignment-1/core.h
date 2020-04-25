@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>  // FIXME: REMOVE LATER
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <sys/shm.h>
@@ -15,7 +16,7 @@
 #include "main.h"
 #include "output.h"
 
-#define SEM_KEY (key_t)0x83
+#define SEM_KEY (key_t) 0x83
 
 union semun {
     int val;               /* Value for SETVAL */

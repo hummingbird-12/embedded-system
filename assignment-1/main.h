@@ -3,7 +3,7 @@
 
 typedef enum _PROCESS { MAIN, INPUT, OUTPUT } Process;
 
-Process makeForks(int, char*);
+Process makeForks(int);
 int prepareSemaphore();
 void throwError(const char*);
 

@@ -60,3 +60,6 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# User-defined files
+memory.txt
