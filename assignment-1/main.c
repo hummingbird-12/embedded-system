@@ -10,6 +10,8 @@ int main() {
     getSharedMemory(SHM_KEY_1, &fromInput);
     getSharedMemory(SHM_KEY_2, &toOutput);
 
+    openDevices();
+
     switch (createForks()) {
         case MAIN:
             _main(semID);
@@ -26,15 +28,15 @@ int main() {
 }
 
 void _main(const int semID) {
+    bool inputLocked = false;
     while (true) {
-        // wait until input
-        semop(semID, &p[SEM_INPUT_READ], 1);
+        if ((fromInput->buf)[0] != '\0') {
+            inputLocked = true;
+        }
 
-        strcpy(toOutput->buf, "Input received: ");
-        strcat(toOutput->buf, fromInput->buf);
         int pressedButtons, i;
         sscanf(fromInput->buf, "%d", &pressedButtons);
-        for (i = 0; i < BUTTONS_COUNT; i++) {
+        for (i = 0; i < BUTTONS_CNT; i++) {
             if ((pressedButtons & (1 << i)) != 0) {
                 switch (1 << i) {
                     case SW1:
@@ -58,25 +60,43 @@ void _main(const int semID) {
                     case PROG:
                         break;
                     case VOL_UP:
-                        mode = (mode + 1) % MODES_COUNT;
+                        mode = (mode + 1) % MODES_CNT;
                         break;
                     case VOL_DOWN:
-                        mode = (mode + MODES_COUNT - 1) % MODES_COUNT;
+                        mode = (mode + MODES_CNT - 1) % MODES_CNT;
                         break;
                     case BACK:
                         break;
                 }
             }
         }
-        strcat(toOutput->buf, "\n");
-        toOutput->nread = strlen(toOutput->buf) * sizeof(char);
+
+        clockMode();
 
         // tell output it's ready
-        semop(semID, &v[SEM_MAIN_READY], 1);
+        semop(semID, &p[SEM_MAIN_READY], 1);
+
+        if (inputLocked) {
+            memset(fromInput->buf, '\0', SHM_SIZE);
+            semop(semID, &v[SEM_INPUT_READY], 1);
+            inputLocked = false;
+        }
     }
 }
 
 void throwError(const char* error) {
     perror(error);
     exit(1);
+}
+
+void clockMode() {
+    time_t rawtime;
+    struct tm* timeinfo;
+    char output[5] = {'\0'};
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    sprintf(output, "%02d%02d", timeinfo->tm_hour, timeinfo->tm_min);
+
+    fndPrint(output);
 }

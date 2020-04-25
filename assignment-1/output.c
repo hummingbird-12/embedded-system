@@ -5,13 +5,10 @@ extern struct shmbuf *toOutput;
 
 void output(const int semID) {
     while (true) {
-        // wait until output ready
-        semop(semID, &p[SEM_MAIN_READY], 1);
-
         write(STDOUT_FILENO, toOutput->buf, toOutput->nread);
         memset(toOutput->buf, '\0', SHM_SIZE);
-
+        // sleep(1);
         // tell output is complete
-        semop(semID, &v[SEM_OUTPUT_WRITE], 1);
+        semop(semID, &v[SEM_MAIN_READY], 1);
     }
 }

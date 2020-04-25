@@ -1,5 +1,5 @@
-default: main.o ipc.o input.o output.o
-	arm-none-linux-gnueabi-gcc -static -Wall -lm -o hw1.out main.o ipc.o input.o output.o
+default: main.o ipc.o input.o output.o devices.o
+	arm-none-linux-gnueabi-gcc -static -Wall -lm -o hw1.out main.o ipc.o input.o output.o devices.o
 	@echo ">>> To execute, type ./hw1.out"
 
 push: default
@@ -16,6 +16,9 @@ input.o: core.h input.h input.c
 
 output.o: core.h output.h output.c
 	arm-none-linux-gnueabi-gcc -static -Wall -lm -c -o output.o output.c
+
+devices.o: core.h devices.h devices.c
+	arm-none-linux-gnueabi-gcc -static -Wall -lm -c -o devices.o devices.c
 
 clean:
 	-rm *.o

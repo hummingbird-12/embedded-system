@@ -27,7 +27,7 @@ void input(const int semID) {
 }
 
 void readKeys(const int semID, const int keyFD) {
-    struct input_event keyBuffer[KEY_MAX_COUNT];
+    struct input_event keyBuffer[KEY_MAX_CNT];
     const int keyEventSize = sizeof(struct input_event);
     int pressedButtons = 0;
 
@@ -56,11 +56,11 @@ void readKeys(const int semID, const int keyFD) {
 }
 
 void readSwitches(const int semID, const int switchFD) {
-    unsigned char switchBuffer[SWITCH_COUNT];
+    unsigned char switchBuffer[SWITCH_CNT];
     int i, pressedButtons = 0;
 
     read(switchFD, &switchBuffer, sizeof(switchBuffer));
-    for (i = 0; i < SWITCH_COUNT; i++) {
+    for (i = 0; i < SWITCH_CNT; i++) {
         if (switchBuffer[i] == BUTTON_PRESSED) {
             pressedButtons |= 1 << i;
         }
@@ -74,11 +74,7 @@ void writeToSHM(const int semID, const int pressedButtons) {
         sprintf(fromInput->buf, "%d", pressedButtons);
         fromInput->nread = strlen(fromInput->buf);
 
-        // tell input is complete
-        semop(semID, &v[SEM_INPUT_READ], 1);
-        // wait until output
-        semop(semID, &p[SEM_OUTPUT_WRITE], 1);
-
-        memset(fromInput->buf, '\0', SHM_SIZE);
+        // Wait for main process
+        semop(semID, &p[SEM_INPUT_READY], 1);
     }
 }

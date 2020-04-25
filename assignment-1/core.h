@@ -12,8 +12,10 @@
 #include <sys/sem.h>
 #include <sys/shm.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
+#include "devices.h"
 #include "input.h"
 #include "ipc.h"
 #include "main.h"

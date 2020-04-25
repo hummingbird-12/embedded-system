@@ -3,7 +3,7 @@
 
 #define SEM_KEY (key_t) 0x10
 #define SEM_CNT 3
-#define SEM_INPUT_READ 0
+#define SEM_INPUT_READY 0
 #define SEM_MAIN_READY 1
 #define SEM_OUTPUT_WRITE 2
 

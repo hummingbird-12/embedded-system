@@ -1,12 +1,12 @@
 #ifndef _INPUT_H_INCLUDED_
 #define _INPUT_H_INCLUDED_
 
-#define BUTTONS_COUNT 13
+#define BUTTONS_CNT 13
 #define BUTTON_PRESSED 1
 
-#define KEY_MAX_COUNT 64
+#define KEY_MAX_CNT 64
 
-#define SWITCH_COUNT 9
+#define SWITCH_CNT 9
 
 enum _BUTTONS {
     SW1 = (1 << 0),
