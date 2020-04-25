@@ -25,5 +25,8 @@ enum _BUTTONS {
 };
 
 void input(const int);
+void readKeys(const int, const int);
+void readSwitches(const int, const int);
+void writeToSHM(const int, const int);
 
 #endif /* _INPUT_H_INCLUDED_ */

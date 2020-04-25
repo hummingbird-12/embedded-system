@@ -30,7 +30,8 @@ void _main(const int semID) {
         // wait until input
         semop(semID, &p[SEM_INPUT_READ], 1);
 
-        // strcpy(toOutput->buf, "Input received: ");
+        strcpy(toOutput->buf, "Input received: ");
+        strcat(toOutput->buf, fromInput->buf);
         int pressedButtons, i;
         sscanf(fromInput->buf, "%d", &pressedButtons);
         for (i = 0; i < BUTTONS_COUNT; i++) {
