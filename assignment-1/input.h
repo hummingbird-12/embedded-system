@@ -1,6 +1,6 @@
-#ifndef _PRJ1_INPUT_H_INCLUDED_
-#define _PRJ1_INPUT_H_INCLUDED_
+#ifndef _INPUT_H_INCLUDED_
+#define _INPUT_H_INCLUDED_
 
-void input(int, char*);
+void input(int);
 
-#endif /* _PRJ1_INPUT_H_INCLUDED_ */
+#endif /* _INPUT_H_INCLUDED_ */

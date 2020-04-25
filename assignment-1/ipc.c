@@ -1,12 +1,26 @@
 #include "core.h"
 
-int getMessageQueue() {
-    int msgID = msgget(MSG_KEY, IPC_CREAT);
-    if (msgID == -1) {
-        throwError("Error while getting message queue!");
+ProcessType createForks() {
+    pid_t pid;
+    switch ((pid = fork())) {
+        case -1:
+            throwError("Error while creating child process!");
+            break;
+        case 0:  // child
+            return INPUT;
+        default:  // parent
+            switch ((pid = fork())) {
+                case -1:
+                    throwError("Error while creating child process!");
+                    break;
+                case 0:  // child
+                    return OUTPUT;
+                default:  // parent
+                    return MAIN;
+            }
+            break;
     }
-
-    return msgID;
+    return MAIN;
 }
 
 int getSemaphore() {
@@ -23,12 +37,28 @@ int getSemaphore() {
             throwError("Error while setting up semaphore!");
         }
 
-        p[i].sem_op = -1;
-        v[i].sem_op = 1;
-
         p[i].sem_num = v[i].sem_num = i;
         p[i].sem_flg = v[i].sem_flg = SEM_UNDO;
+
+        p[i].sem_op = -1;
+        v[i].sem_op = 1;
     }
 
     return semID;
+}
+
+int getSharedMemory(const key_t key, struct shmbuf **buf) {
+    int shmID = shmget(key, sizeof(struct shmbuf), IPC_CREAT);
+    if (shmID == -1) {
+        throwError("Error while getting shared memory!");
+    }
+
+    if ((*buf = (struct shmbuf *) shmat(shmID, 0, 0)) == (void *) -1) {
+        throwError("Error while attaching to shared memory!");
+    }
+
+    memset((*buf)->buf, '\0', SHM_SIZE);
+    (*buf)->nread = 0;
+
+    return shmID;
 }

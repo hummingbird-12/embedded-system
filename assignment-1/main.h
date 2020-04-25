@@ -1,10 +1,4 @@
-#ifndef _PRJ1_MAIN_H_INCLUDED_
-#define _PRJ1_MAIN_H_INCLUDED_
+#ifndef _MAIN_H_INCLUDED_
+#define _MAIN_H_INCLUDED_
 
-typedef enum _PROCESS { MAIN, INPUT, OUTPUT } Process;
-
-Process makeForks(int);
-int prepareSemaphore();
-void throwError(const char*);
-
-#endif /* _PRJ1_MAIN_H_INCLUDED_ */
+#endif /* _MAIN_H_INCLUDED_ */
