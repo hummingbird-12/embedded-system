@@ -7,16 +7,20 @@
 #include <stdlib.h>
 #include <string.h>  // FIXME: REMOVE LATER
 #include <sys/ipc.h>
+#include <sys/msg.h>
 #include <sys/sem.h>
 #include <sys/shm.h>
 #include <sys/types.h>
 #include <unistd.h>
 
 #include "input.h"
+#include "ipc.h"
 #include "main.h"
 #include "output.h"
 
-#define SEM_KEY (key_t) 0x83
+#define MSG_KEY (key_t) 0x10
+#define SEM_KEY (key_t) 0x10
+#define SEM_CNT 3
 
 union semun {
     int val;               /* Value for SETVAL */
@@ -26,6 +30,7 @@ union semun {
                               (Linux-specific) */
 };
 
+struct sembuf p[SEM_CNT], v[SEM_CNT];
 struct sembuf p1, p2, p3;
 struct sembuf v1, v2, v3;
 
