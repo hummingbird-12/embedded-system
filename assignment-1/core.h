@@ -1,6 +1,7 @@
 #ifndef _CORE_H_INCLUDED_
 #define _CORE_H_INCLUDED_
 
+#include <ctype.h>
 #include <fcntl.h>
 #include <linux/input.h>
 #include <stdarg.h>
@@ -9,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ipc.h>
+#include <sys/mman.h>
 #include <sys/msg.h>
 #include <sys/sem.h>
 #include <sys/shm.h>

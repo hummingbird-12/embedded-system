@@ -5,16 +5,57 @@ extern struct shmbuf *fromInput, *toOutput;
 
 enum _MODE { CLOCK, COUNTER, TEXT_EDITOR, DRAW_BOARD } mode = CLOCK;
 
+void testDot() {
+    printf("\n========== DOT TEST ==========\n");
+    dotPrint('A');
+    sleep(2);
+    dotPrint('!');
+    sleep(2);
+    dotPrint('3');
+    sleep(2);
+    dotPrint('1');
+    sleep(2);
+    printf("\n========== TEST END ==========\n");
+}
+
+void testFND() {
+    printf("\n========== FND TEST ==========\n");
+    fndPrint(1234);
+    sleep(2);
+    fndPrint(123);
+    sleep(2);
+    fndPrint(99999);
+    sleep(2);
+    fndPrint(-1);
+    sleep(2);
+    printf("\n========== TEST END ==========\n");
+}
+
+void testLED() {
+    printf("\n========== LED TEST ==========\n");
+    ledPrint(255);
+    sleep(2);
+    ledPrint(0);
+    sleep(2);
+    ledPrint(999);
+    sleep(2);
+    ledPrint(-1);
+    sleep(2);
+    printf("\n========== TEST END ==========\n");
+}
+
 int main() {
-    int semID = getSemaphore();
-    getSharedMemory(SHM_KEY_1, &fromInput);
-    getSharedMemory(SHM_KEY_2, &toOutput);
+    // int semID = getSemaphore();
+    // getSharedMemory(SHM_KEY_1, &fromInput);
+    // getSharedMemory(SHM_KEY_2, &toOutput);
 
-    printError(FND, WARNING, "Trimming to %d digits!", FND_MAX_DIGITS);
+    openDevices();
 
-    // openDevices();
+    // testDot();
+    testFND();
+    // testLED();
 
-    // fndPrint("1234");
+    closeDevices();
 
     // switch (createForks()) {
     //     case MAIN:
@@ -102,5 +143,5 @@ void clockMode() {
     timeinfo = localtime(&rawtime);
     sprintf(output, "%02d%02d", timeinfo->tm_hour, timeinfo->tm_min);
 
-    fndPrint(output);
+    // fndPrint(output);
 }
