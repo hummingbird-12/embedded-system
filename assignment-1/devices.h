@@ -2,7 +2,6 @@
 #define _DEVICES_H_INCLUDED_
 
 #define _DEBUG_FLAG_
-#define _TESTING_FLAG_
 
 #define DEVICES_CNT 4
 
@@ -34,6 +33,8 @@
 #define FPGA_MAP_LENGTH 4096
 #define LED_ADDR_OFFSET 0x16
 
+#define TEXT_LCD_MAX_LEN 32
+
 enum _DEVICES { DOT, FND, LED, TEXT_LCD };
 enum _LOG_LEVEL { ERROR, WARNING, INFO };
 
@@ -44,5 +45,6 @@ void deviceLog(const enum _DEVICES, const enum _LOG_LEVEL, const char*, ...);
 void dotPrint(const char);
 void fndPrint(const int);
 void ledPrint(const int);
+void textLcdPrint(const char*);
 
 #endif /* _DEVICES_H_INCLUDED_ */

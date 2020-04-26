@@ -89,7 +89,11 @@ void closeDevices() {
 
 void deviceLog(const enum _DEVICES device, const enum _LOG_LEVEL level,
                const char* format, ...) {
-#ifdef _DEBUG_FLAG_
+#ifndef _DEBUG_FLAG_
+    if (level != ERROR) {
+        return;
+    }
+#endif
     const char NAMES[][9] = {"DOT", "FND", "LED", "TEXT_LCD"};
     const char LEVELS[][8] = {"ERROR", "WARNING", "INFO"};
 
@@ -99,14 +103,6 @@ void deviceLog(const enum _DEVICES device, const enum _LOG_LEVEL level,
     va_start(args, format);
     vprintf(format, args);
     va_end(args);
-#elif defined(_TESTING_FLAG_)
-    if (level == ERROR) {
-        printf("[IMPORTANT] A device error has occured!\n");
-        printf(
-            "Please enable `_DEBUG_FLAG_` in `devices.h` to show device "
-            "logs.\n");
-    }
-#endif
 }
 
 void dotPrint(const char data) {
@@ -156,6 +152,8 @@ void fndPrint(const int data) {
 }
 
 void ledPrint(const int data) {
+    deviceLog(LED, INFO, "Requested print value: %d\n", data);
+
     if (data < 0 || data > 255) {
         deviceLog(LED, ERROR, "Value out of bound (0~255): %d\n", data);
         return;
@@ -166,4 +164,27 @@ void ledPrint(const int data) {
     deviceLog(LED, INFO, "Printed value: %d\n", data);
 }
 
-// void textLcdPrint()
+void textLcdPrint(const char* data) {
+    deviceLog(TEXT_LCD, INFO, "Requested print value: %s\n", data);
+
+    int dataLength = strlen(data);
+    if (dataLength > TEXT_LCD_MAX_LEN) {
+        deviceLog(TEXT_LCD, WARNING, "String exceeded max length (32): %d\n",
+                  dataLength);
+        dataLength = TEXT_LCD_MAX_LEN;
+    }
+
+    char processed[TEXT_LCD_MAX_LEN + 1] = {'\0'};
+    strncpy(processed, data, TEXT_LCD_MAX_LEN);
+    memset(processed + dataLength, ' ', TEXT_LCD_MAX_LEN - dataLength);
+
+    if (write(devices[TEXT_LCD], processed, TEXT_LCD_MAX_LEN) < 0) {
+        deviceLog(TEXT_LCD, ERROR, "Write error\n");
+        return;
+    }
+
+#ifdef _DEBUG_FLAG_
+    processed[dataLength] = '\0';
+    deviceLog(TEXT_LCD, INFO, "Printed value: %s\n", processed);
+#endif
+}

@@ -44,6 +44,17 @@ void testLED() {
     printf("\n========== TEST END ==========\n");
 }
 
+void testTEXT_LCD() {
+    printf("\n========== TEXT_LCD TEST ==========\n");
+    textLcdPrint("Hi there");
+    sleep(5);
+    textLcdPrint("The quick brown fox jumped");
+    sleep(5);
+    textLcdPrint("The quick brown fox jumped over a lazy dog.");
+    sleep(5);
+    printf("\n========== TEST END ==========\n");
+}
+
 int main() {
     // int semID = getSemaphore();
     // getSharedMemory(SHM_KEY_1, &fromInput);
@@ -52,8 +63,9 @@ int main() {
     openDevices();
 
     // testDot();
-    testFND();
+    // testFND();
     // testLED();
+    testTEXT_LCD();
 
     closeDevices();
 
