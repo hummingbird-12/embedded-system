@@ -105,21 +105,27 @@ void deviceLog(const enum _DEVICES device, const enum _LOG_LEVEL level,
     va_end(args);
 }
 
+void writeToDevice(const enum _DEVICES device, const void* data,
+                   const size_t size) {
+    if (device == LED) {
+        *ledAddr = *((int*) data);
+    } else {
+        if (write(devices[device], data, size) < 0) {
+            deviceLog(device, ERROR, "Write error\n");
+            return;
+        }
+    }
+}
+
 void dotPrint(const char data) {
     deviceLog(DOT, INFO, "Requested print value: '%c'\n", data);
 
     switch (data) {
         case '1':
-            if (write(devices[DOT], DOT_1, sizeof(DOT_1)) < 0) {
-                deviceLog(DOT, ERROR, "Write error\n");
-                return;
-            }
+            writeToDevice(DOT, DOT_1, sizeof(DOT_1));
             break;
         case 'A':
-            if (write(devices[DOT], DOT_A, sizeof(DOT_A)) < 0) {
-                deviceLog(DOT, ERROR, "Write error\n");
-                return;
-            }
+            writeToDevice(DOT, DOT_A, sizeof(DOT_A));
             break;
         default:
             deviceLog(DOT, ERROR, "Not a valid character (1 or A): '%c'\n",
@@ -146,10 +152,7 @@ void fndPrint(const int data) {
         digit *= 10;
     }
 
-    if (write(devices[FND], digits, FND_MAX_DIGITS) < 0) {
-        deviceLog(FND, ERROR, "Write error\n");
-        return;
-    }
+    writeToDevice(FND, digits, FND_MAX_DIGITS);
 
     deviceLog(FND, INFO, "Printed value: %d\n", data);
 }
@@ -162,7 +165,7 @@ void ledPrint(const int data) {
         return;
     }
 
-    *ledAddr = data;
+    writeToDevice(LED, &data, sizeof(data));
 
     deviceLog(LED, INFO, "Printed value: %d\n", data);
 }
@@ -181,10 +184,7 @@ void textLcdPrint(const char* data) {
     strncpy(processed, data, TEXT_LCD_MAX_LEN);
     memset(processed + dataLength, ' ', TEXT_LCD_MAX_LEN - dataLength);
 
-    if (write(devices[TEXT_LCD], processed, TEXT_LCD_MAX_LEN) < 0) {
-        deviceLog(TEXT_LCD, ERROR, "Write error\n");
-        return;
-    }
+    writeToDevice(TEXT_LCD, processed, TEXT_LCD_MAX_LEN);
 
 #ifdef _DEBUG_FLAG_
     processed[dataLength] = '\0';

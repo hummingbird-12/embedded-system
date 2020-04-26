@@ -65,9 +65,9 @@ int main() {
     openDevices();
 
     testDot();
-    // testFND();
-    // testLED();
-    // testTEXT_LCD();
+    testFND();
+    testLED();
+    testTEXT_LCD();
 
     closeDevices();
 
