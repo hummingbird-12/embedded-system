@@ -9,13 +9,13 @@ enum _MODE { CLOCK, COUNTER, TEXT_EDITOR, DRAW_BOARD } mode = CLOCK;
 
 void testDot() {
     printf("\n========== DOT TEST ==========\n");
-    dotPrint('A');
+    dotPrint_1A('A');
     sleep(TEST_SLEEP);
-    dotPrint('!');
+    dotPrint_1A('!');
     sleep(TEST_SLEEP);
-    dotPrint('3');
+    dotPrint_1A('3');
     sleep(TEST_SLEEP);
-    dotPrint('1');
+    dotPrint_1A('1');
     sleep(TEST_SLEEP);
     printf("\n========== TEST END ==========\n");
 }
@@ -24,11 +24,11 @@ void testFND() {
     printf("\n========== FND TEST ==========\n");
     fndPrint(1234);
     sleep(TEST_SLEEP);
-    fndPrint(123);
+    fndPrint(-1);
     sleep(TEST_SLEEP);
     fndPrint(99999);
     sleep(TEST_SLEEP);
-    fndPrint(-1);
+    fndPrint(123);
     sleep(TEST_SLEEP);
     printf("\n========== TEST END ==========\n");
 }
@@ -41,7 +41,7 @@ void testLED() {
     sleep(TEST_SLEEP);
     ledPrint(999);
     sleep(TEST_SLEEP);
-    ledPrint(-1);
+    ledPrint(96);
     sleep(TEST_SLEEP);
     printf("\n========== TEST END ==========\n");
 }
@@ -68,6 +68,8 @@ int main() {
     testFND();
     testLED();
     testTEXT_LCD();
+
+    resetDevices();
 
     closeDevices();
 

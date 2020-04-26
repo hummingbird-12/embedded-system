@@ -29,7 +29,7 @@ const unsigned char DOT_A[] = {
     (DOT_0110 << 4) + DOT_0011   // @@. ..@@
 };
 
-const unsigned char DOT_BLANK[10] = {
+const unsigned char DOT_EMPTY[10] = {
     DOT_0000,  // ... ....
     DOT_0000,  // ... ....
     DOT_0000,  // ... ....
@@ -117,7 +117,14 @@ void writeToDevice(const enum _DEVICES device, const void* data,
     }
 }
 
-void dotPrint(const char data) {
+void resetDevices() {
+    dotReset();
+    fndReset();
+    ledReset();
+    textLcdReset();
+}
+
+void dotPrint_1A(const char data) {
     deviceLog(DOT, INFO, "Requested print value: '%c'\n", data);
 
     switch (data) {
@@ -137,6 +144,14 @@ void dotPrint(const char data) {
     deviceLog(DOT, INFO, "Printed value: %c\n", data);
 }
 
+void dotReset() {
+    deviceLog(DOT, INFO, "Requested reset\n");
+
+    writeToDevice(DOT, DOT_EMPTY, sizeof(DOT_EMPTY));
+
+    deviceLog(DOT, INFO, "Resetted device state\n");
+}
+
 void fndPrint(const int data) {
     deviceLog(FND, INFO, "Requested print value: %d\n", data);
 
@@ -154,7 +169,15 @@ void fndPrint(const int data) {
 
     writeToDevice(FND, digits, FND_MAX_DIGITS);
 
-    deviceLog(FND, INFO, "Printed value: %d\n", data);
+    deviceLog(FND, INFO, "Printed value: %04d\n", data);
+}
+
+void fndReset() {
+    deviceLog(FND, INFO, "Requested reset\n");
+
+    fndPrint(0);
+
+    deviceLog(FND, INFO, "Resetted device state\n");
 }
 
 void ledPrint(const int data) {
@@ -168,6 +191,14 @@ void ledPrint(const int data) {
     writeToDevice(LED, &data, sizeof(data));
 
     deviceLog(LED, INFO, "Printed value: %d\n", data);
+}
+
+void ledReset() {
+    deviceLog(LED, INFO, "Requested reset\n");
+
+    ledPrint(0);
+
+    deviceLog(LED, INFO, "Resetted device state\n");
 }
 
 void textLcdPrint(const char* data) {
@@ -190,4 +221,12 @@ void textLcdPrint(const char* data) {
     processed[dataLength] = '\0';
     deviceLog(TEXT_LCD, INFO, "Printed value: %s\n", processed);
 #endif
+}
+
+void textLcdReset() {
+    deviceLog(TEXT_LCD, INFO, "Requested reset\n");
+
+    textLcdPrint("");
+
+    deviceLog(TEXT_LCD, INFO, "Resetted device state\n");
 }

@@ -41,10 +41,19 @@ enum _LOG_LEVEL { ERROR, WARNING, INFO };
 void openDevices();
 void closeDevices();
 void deviceLog(const enum _DEVICES, const enum _LOG_LEVEL, const char*, ...);
+void writeToDevice(const enum _DEVICES, const void*, const size_t);
+void resetDevices();
 
-void dotPrint(const char);
+void dotPrint_1A(const char);
+void dotReset();
+
 void fndPrint(const int);
+void fndReset();
+
 void ledPrint(const int);
+void ledReset();
+
 void textLcdPrint(const char*);
+void textLcdReset();
 
 #endif /* _DEVICES_H_INCLUDED_ */
