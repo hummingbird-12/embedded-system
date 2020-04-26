@@ -5,53 +5,55 @@ extern struct shmbuf *fromInput, *toOutput;
 
 enum _MODE { CLOCK, COUNTER, TEXT_EDITOR, DRAW_BOARD } mode = CLOCK;
 
+#define TEST_SLEEP 3
+
 void testDot() {
     printf("\n========== DOT TEST ==========\n");
     dotPrint('A');
-    sleep(2);
+    sleep(TEST_SLEEP);
     dotPrint('!');
-    sleep(2);
+    sleep(TEST_SLEEP);
     dotPrint('3');
-    sleep(2);
+    sleep(TEST_SLEEP);
     dotPrint('1');
-    sleep(2);
+    sleep(TEST_SLEEP);
     printf("\n========== TEST END ==========\n");
 }
 
 void testFND() {
     printf("\n========== FND TEST ==========\n");
     fndPrint(1234);
-    sleep(2);
+    sleep(TEST_SLEEP);
     fndPrint(123);
-    sleep(2);
+    sleep(TEST_SLEEP);
     fndPrint(99999);
-    sleep(2);
+    sleep(TEST_SLEEP);
     fndPrint(-1);
-    sleep(2);
+    sleep(TEST_SLEEP);
     printf("\n========== TEST END ==========\n");
 }
 
 void testLED() {
     printf("\n========== LED TEST ==========\n");
     ledPrint(255);
-    sleep(2);
+    sleep(TEST_SLEEP);
     ledPrint(0);
-    sleep(2);
+    sleep(TEST_SLEEP);
     ledPrint(999);
-    sleep(2);
+    sleep(TEST_SLEEP);
     ledPrint(-1);
-    sleep(2);
+    sleep(TEST_SLEEP);
     printf("\n========== TEST END ==========\n");
 }
 
 void testTEXT_LCD() {
     printf("\n========== TEXT_LCD TEST ==========\n");
     textLcdPrint("Hi there");
-    sleep(5);
+    sleep(TEST_SLEEP);
     textLcdPrint("The quick brown fox jumped");
-    sleep(5);
+    sleep(TEST_SLEEP);
     textLcdPrint("The quick brown fox jumped over a lazy dog.");
-    sleep(5);
+    sleep(TEST_SLEEP);
     printf("\n========== TEST END ==========\n");
 }
 
@@ -62,10 +64,10 @@ int main() {
 
     openDevices();
 
-    // testDot();
+    testDot();
     // testFND();
     // testLED();
-    testTEXT_LCD();
+    // testTEXT_LCD();
 
     closeDevices();
 

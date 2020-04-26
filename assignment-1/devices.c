@@ -108,21 +108,24 @@ void deviceLog(const enum _DEVICES device, const enum _LOG_LEVEL level,
 void dotPrint(const char data) {
     deviceLog(DOT, INFO, "Requested print value: '%c'\n", data);
 
-    if (!isalnum(data)) {
-        deviceLog(DOT, ERROR, "Invalid character: '%c'\n", data);
-        return;
-    }
-
-    if (data == '1') {
-        if (write(devices[DOT], DOT_1, sizeof(DOT_1)) < 0) {
-            deviceLog(DOT, ERROR, "Write error\n");
+    switch (data) {
+        case '1':
+            if (write(devices[DOT], DOT_1, sizeof(DOT_1)) < 0) {
+                deviceLog(DOT, ERROR, "Write error\n");
+                return;
+            }
+            break;
+        case 'A':
+            if (write(devices[DOT], DOT_A, sizeof(DOT_A)) < 0) {
+                deviceLog(DOT, ERROR, "Write error\n");
+                return;
+            }
+            break;
+        default:
+            deviceLog(DOT, ERROR, "Not a valid character (1 or A): '%c'\n",
+                      data);
             return;
-        }
-    } else if (data == 'A') {
-        if (write(devices[DOT], DOT_A, sizeof(DOT_A)) < 0) {
-            deviceLog(DOT, ERROR, "Write error\n");
-            return;
-        }
+            break;
     }
 
     deviceLog(DOT, INFO, "Printed value: %c\n", data);
