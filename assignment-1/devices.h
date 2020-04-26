@@ -14,9 +14,11 @@
 #define LED_ADDR 0x16
 
 enum _DEVICES { DOT, FND, LED, TEXT_LCD };
+enum _LOG_LEVEL { ERROR, WARNING, INFO };
 
 void openDevices();
 void closeDevices();
+void printError(enum _DEVICES, const enum _LOG_LEVEL, const char*, ...);
 
 void fndPrint(char*);
 

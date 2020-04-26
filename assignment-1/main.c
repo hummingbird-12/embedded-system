@@ -10,19 +10,23 @@ int main() {
     getSharedMemory(SHM_KEY_1, &fromInput);
     getSharedMemory(SHM_KEY_2, &toOutput);
 
-    openDevices();
+    printError(FND, WARNING, "Trimming to %d digits!", FND_MAX_DIGITS);
 
-    switch (createForks()) {
-        case MAIN:
-            _main(semID);
-            break;
-        case INPUT:
-            input(semID);
-            break;
-        case OUTPUT:
-            output(semID);
-            break;
-    }
+    // openDevices();
+
+    // fndPrint("1234");
+
+    // switch (createForks()) {
+    //     case MAIN:
+    //         _main(semID);
+    //         break;
+    //     case INPUT:
+    //         input(semID);
+    //         break;
+    //     case OUTPUT:
+    //         output(semID);
+    //         break;
+    // }
 
     return 0;
 }

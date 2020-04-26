@@ -28,9 +28,21 @@ void closeDevices() {
     }
 }
 
+void printError(enum _DEVICES device, const enum _LOG_LEVEL level,
+                const char* format, ...) {
+    const char NAMES[][9] = {"DOT", "FND", "LED", "TEXT_LCD"};
+    const char LEVELS[][8] = {"ERROR", "WARNING"};
+    va_list args;
+    va_start(args, format);
+
+    printf("[%s] %s - ", NAMES[device], LEVELS[level]);
+    vprintf(format, args);
+    va_end(args);
+}
+
 void fndPrint(char* str) {
     if (strlen(str) > FND_MAX_DIGITS) {
-        printf("[FND] [Warning] Trimming to %d digits!\n", FND_MAX_DIGITS);
+        printError(FND, WARNING, "Trimming to %d digits!", FND_MAX_DIGITS);
         str[FND_MAX_DIGITS] = '\0';
     }
 
