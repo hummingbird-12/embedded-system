@@ -147,12 +147,12 @@ void fndPrint(const int data) {
         digit *= 10;
     }
 
-    if (write(devices[FND], &digits, FND_MAX_DIGITS) < 0) {
+    if (write(devices[FND], digits, FND_MAX_DIGITS) < 0) {
         deviceLog(FND, ERROR, "Write error\n");
         return;
     }
 
-    deviceLog(FND, INFO, "Printed value: %s\n", data);
+    deviceLog(FND, INFO, "Printed value: %d\n", data);
 }
 
 void ledPrint(const int data) {
