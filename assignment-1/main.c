@@ -123,11 +123,13 @@ void throwError(const char* error) {
 }
 
 void clockMode(const struct _clockPayload* payload) {
+    // Set which devices this mode will use
     outputBuffer->inUse[DOT] = false;
     outputBuffer->inUse[FND] = true;
     outputBuffer->inUse[LED] = true;
     outputBuffer->inUse[TEXT_LCD] = false;
 
+    // Obtain device's local time
     time_t rawtime;
     time(&rawtime);
     const struct tm* timeinfo = localtime(&rawtime);
@@ -194,4 +196,28 @@ void clockMode(const struct _clockPayload* payload) {
     // Save to shared memory
     outputBuffer->ledBuffer = leds;
     outputBuffer->fndBuffer = fnd;
+}
+
+void counterMode(const struct _counterPayload* payload) {
+    // Set which devices this mode will use
+    outputBuffer->inUse[DOT] = false;
+    outputBuffer->inUse[FND] = true;
+    outputBuffer->inUse[LED] = true;
+    outputBuffer->inUse[TEXT_LCD] = false;
+}
+
+void textEditorMode(const struct _textEditorPayload* payload) {
+    // Set which devices this mode will use
+    outputBuffer->inUse[DOT] = true;
+    outputBuffer->inUse[FND] = true;
+    outputBuffer->inUse[LED] = false;
+    outputBuffer->inUse[TEXT_LCD] = true;
+}
+
+void drawBoardMode(const struct _drawBoardPayload* payload) {
+    // Set which devices this mode will use
+    outputBuffer->inUse[DOT] = true;
+    outputBuffer->inUse[FND] = true;
+    outputBuffer->inUse[LED] = false;
+    outputBuffer->inUse[TEXT_LCD] = false;
 }
