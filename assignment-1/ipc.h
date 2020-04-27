@@ -1,18 +1,19 @@
 #ifndef _IPC_H_INCLUDED_
 #define _IPC_H_INCLUDED_
 
-#define SEM_KEY (key_t) 0x10
-#define SEM_CNT 3
-#define SEM_INPUT_READY 0
-#define SEM_MAIN_TO_OUTPUT 1
-#define SEM_OUTPUT_TO_MAIN 2
+#define SEM_KEY (key_t) 0x20
+#define SEM_CNT 4
+#define SEM_INPUT_TO_MAIN 0
+#define SEM_MAIN_TO_INPUT 1
+#define SEM_MAIN_TO_OUTPUT 2
+#define SEM_OUTPUT_TO_MAIN 3
 
 #define SHM_KEY_1 (key_t) 0x10
 #define SHM_KEY_2 (key_t) 0x20
 #define SHM_KEY_3 (key_t) 0x30
 #define SHM_SIZE 2048
 
-typedef enum _PROCESS { MAIN, INPUT, OUTPUT } ProcessType;
+typedef enum _processType { MAIN, INPUT, OUTPUT } processType;
 
 union semun {
     int val;               /* Value for SETVAL */
@@ -40,7 +41,7 @@ struct sembuf p[SEM_CNT], v[SEM_CNT];
 struct shmbuf *fromInput;
 struct _shmOutBuf *outputBuffer;
 
-ProcessType createForks();
+processType createForks();
 int getSemaphore();
 int getSharedMemory(const key_t, void **, const size_t);
 

@@ -1,6 +1,6 @@
 #include "core.h"
 
-ProcessType createForks() {
+processType createForks() {
     pid_t pid;
     switch ((pid = fork())) {
         case -1:

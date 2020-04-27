@@ -90,7 +90,7 @@ int main() {
             closeDevices();
             break;
         case INPUT:
-            // input(semID);
+            input(semID);
             break;
         case OUTPUT:
             output(semID);
@@ -104,6 +104,9 @@ void _main(const int semID) {
     static enum _mode mode = CLOCK;
     struct _clockPayload clockPayload;
     while (true) {
+        // wait for input's payload
+        semop(semID, &p[SEM_INPUT_TO_MAIN], 1);
+
         switch (mode) {
             case CLOCK:
                 clockPayload.resetClock = false;
@@ -119,10 +122,14 @@ void _main(const int semID) {
                 break;
         }
 
+        // tell input payload is read
+        semop(semID, &v[SEM_MAIN_TO_INPUT], 1);
+
         // tell output payload is ready
         semop(semID, &v[SEM_MAIN_TO_OUTPUT], 1);
-        // wait for output to be ready
+        // wait for output to complete
         semop(semID, &p[SEM_OUTPUT_TO_MAIN], 1);
+
         usleep(300000);
 
         // sscanf(fromInput->buf, "%d", &pressedButtons);

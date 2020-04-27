@@ -5,7 +5,7 @@ extern struct _shmOutBuf* outputBuffer;
 
 void output(const int semID) {
     while (true) {
-        // wait for main process's payload
+        // wait for main's payload
         semop(semID, &p[SEM_MAIN_TO_OUTPUT], 1);
 
         enum _DEVICES i;
@@ -28,7 +28,7 @@ void output(const int semID) {
             }
         }
 
-        // tell output print is complete
+        // tell main output is complete
         semop(semID, &v[SEM_OUTPUT_TO_MAIN], 1);
     }
 }

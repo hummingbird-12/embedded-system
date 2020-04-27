@@ -19,10 +19,15 @@ void input(const int semID) {
     }
 
     while (true) {
-        readKeys(semID, keyFD);
-        readSwitches(semID, switchFD);
+        // readKeys(semID, keyFD);
+        // readSwitches(semID, switchFD);
 
-        usleep(200000);
+        printf(">>>> READ <<<<\n");
+
+        semop(semID, &v[SEM_INPUT_TO_MAIN], 1);
+        semop(semID, &p[SEM_MAIN_TO_INPUT], 1);
+
+        // usleep(200000);
     }
 }
 
@@ -73,8 +78,5 @@ void writeToSHM(const int semID, const int pressedButtons) {
     if (pressedButtons != 0) {
         sprintf(fromInput->buf, "%d", pressedButtons);
         fromInput->nread = strlen(fromInput->buf);
-
-        // Wait for main process
-        semop(semID, &p[SEM_INPUT_READY], 1);
     }
 }
