@@ -36,7 +36,10 @@ void _main(const int semID) {
     static enum _mode mode = CLOCK;
     bool modeChanged, quitFlag = false;
 
-    struct _clockPayload clockPayload;
+    clockPayload clockPl;
+    counterPayload counterPl;
+    textEditorPayload textEditorPl;
+    drawBoardPayload drawBoardPl;
 
     while (true) {
         // wait for input's payload
@@ -68,33 +71,58 @@ void _main(const int semID) {
 
         switch (mode) {
             case CLOCK:
-                clockPayload.firstPayload = false;
-                clockPayload.increaseHour = false;
-                clockPayload.increaseMinute = false;
-                clockPayload.toggleEdit = false;
-                clockPayload.resetClock = false;
+                clockPl = (clockPayload){false, false, false, false, false};
 
                 if (modeChanged) {
-                    clockPayload.firstPayload = true;
+                    clockPl.firstPayload = true;
                 }
 
                 if (inputBuffer->switches[1]) {
-                    clockPayload.toggleEdit = true;
+                    clockPl.toggleEdit = true;
                 } else if (inputBuffer->switches[2]) {
-                    clockPayload.resetClock = true;
+                    clockPl.resetClock = true;
                 } else if (inputBuffer->switches[3]) {
-                    clockPayload.increaseHour = true;
+                    clockPl.increaseHour = true;
                 } else if (inputBuffer->switches[4]) {
-                    clockPayload.increaseMinute = true;
+                    clockPl.increaseMinute = true;
                 }
 
-                clockMode(&clockPayload);
+                clockMode(&clockPl);
                 break;
             case COUNTER:
+                counterPl = (counterPayload){false, false, false, false, false};
+
+                if (modeChanged) {
+                    counterPl.firstPayload = true;
+                }
+
+                if (inputBuffer->switches[1]) {
+                    counterPl.changeRadix = true;
+                } else if (inputBuffer->switches[2]) {
+                    counterPl.increase2 = true;
+                } else if (inputBuffer->switches[3]) {
+                    counterPl.increase1 = true;
+                } else if (inputBuffer->switches[4]) {
+                    counterPl.increase0 = true;
+                }
+
+                counterMode(&counterPl);
                 break;
             case TEXT_EDITOR:
+
+                if (modeChanged) {
+                    textEditorPl.firstPayload = true;
+                }
+
+                textEditorMode(&textEditorPl);
                 break;
             case DRAW_BOARD:
+
+                if (modeChanged) {
+                    drawBoardPl.firstPayload = true;
+                }
+
+                drawBoardMode(&drawBoardPl);
                 break;
         }
 
@@ -122,12 +150,14 @@ void throwError(const char* error) {
     exit(1);
 }
 
-void clockMode(const struct _clockPayload* payload) {
-    // Set which devices this mode will use
+void clockMode(const clockPayload* payload) {
+    // Set which devices will this mode use
     outputBuffer->inUse[DOT] = false;
     outputBuffer->inUse[FND] = true;
     outputBuffer->inUse[LED] = true;
     outputBuffer->inUse[TEXT_LCD] = false;
+
+    int fnd, leds;
 
     // Obtain device's local time
     time_t rawtime;
@@ -138,8 +168,6 @@ void clockMode(const struct _clockPayload* payload) {
 
     static int offset = 0, tmpOffset = 0;
     static bool inEdit = false;
-
-    int fnd, leds;
 
     // Just changed into Clock mode
     if (payload->firstPayload) {
@@ -198,26 +226,136 @@ void clockMode(const struct _clockPayload* payload) {
     outputBuffer->fndBuffer = fnd;
 }
 
-void counterMode(const struct _counterPayload* payload) {
-    // Set which devices this mode will use
+void counterMode(const counterPayload* payload) {
+    // Set which devices will this mode use
     outputBuffer->inUse[DOT] = false;
     outputBuffer->inUse[FND] = true;
     outputBuffer->inUse[LED] = true;
     outputBuffer->inUse[TEXT_LCD] = false;
+
+    int fnd, leds;
+    char digits[5] = {'\0'};
+
+    static int value = 0;
+    static enum _counterRadix radix = DEC;
+
+    // Just changed into Counter mode
+    if (payload->firstPayload) {
+        value = 0;
+        radix = DEC;
+    }
+    // Change to next radix
+    else if (payload->changeRadix) {
+        radix = (radix + 1) % COUNTER_RADIX_CNT;
+    }
+
+    // Increase least significant digit
+    if (payload->increase0) {
+        value++;
+    }
+
+    switch (radix) {
+        case DEC:
+            if (payload->increase1) {
+                value += 10;
+            }
+            if (payload->increase2) {
+                value += 100;
+            }
+
+            // Ignore 1,000's-digit for decimal
+            value %= 1000;
+            sprintf(digits, "%04d", value);
+            leds = LED_2;
+            break;
+        case OCT:
+            if (payload->increase1) {
+                value += 010;
+            }
+            if (payload->increase2) {
+                value += 0100;
+            }
+
+            // Reduce octal value to 4 digits
+            value %= 010000;
+            sprintf(digits, "%04o", value);
+            leds = LED_3;
+            break;
+        case QUA:
+            if (payload->increase1) {
+                value += 0b100;
+            }
+            if (payload->increase2) {
+                value += 0b10000;
+            }
+
+            // Reduce quaternary value to 4 digits
+            value %= 0b100000000;
+            digits[0] = ((value >> 6) & 0b11) + '0';
+            digits[1] = ((value >> 4) & 0b11) + '0';
+            digits[2] = ((value >> 2) & 0b11) + '0';
+            digits[3] = ((value >> 0) & 0b11) + '0';
+            leds = LED_4;
+            break;
+        case BIN:
+            if (payload->increase1) {
+                value += 0b10;
+            }
+            if (payload->increase2) {
+                value += 0b100;
+            }
+
+            // Reduce binary value to 4 digits
+            value %= 0b10000;
+            digits[0] = ((value >> 3) & 1) + '0';
+            digits[1] = ((value >> 2) & 1) + '0';
+            digits[2] = ((value >> 1) & 1) + '0';
+            digits[3] = ((value >> 0) & 1) + '0';
+            leds = LED_1;
+            break;
+    }
+
+    fnd = atoi(digits);
+
+    // Save to shared memory
+    outputBuffer->ledBuffer = leds;
+    outputBuffer->fndBuffer = fnd;
 }
 
-void textEditorMode(const struct _textEditorPayload* payload) {
-    // Set which devices this mode will use
+void textEditorMode(const textEditorPayload* payload) {
+    // Set which devices will this mode use
     outputBuffer->inUse[DOT] = true;
     outputBuffer->inUse[FND] = true;
     outputBuffer->inUse[LED] = false;
     outputBuffer->inUse[TEXT_LCD] = true;
+    // int fnd;
+    // char dot;
+    // char textLcd[TEXT_LCD_MAX_LEN];
+
+    // Just changed into Text Editor mode
+    if (payload->firstPayload) {
+    }
+
+    // Save to shared memory
+    // outputBuffer->fndBuffer = fnd;
+    // outputBuffer->dotCharBuffer = dot;
+    // memcpy(outputBuffer->textLcdBuffer, textLcd, strlen(textLcd));
 }
 
-void drawBoardMode(const struct _drawBoardPayload* payload) {
-    // Set which devices this mode will use
+void drawBoardMode(const drawBoardPayload* payload) {
+    // Set which devices will this mode use
     outputBuffer->inUse[DOT] = true;
     outputBuffer->inUse[FND] = true;
     outputBuffer->inUse[LED] = false;
     outputBuffer->inUse[TEXT_LCD] = false;
+    // int fnd;
+    // char dot[DOT_ROWS][DOT_COLS];
+
+    // Just changed into Draw Board mode
+    if (payload->firstPayload) {
+    }
+
+    // Save to shared memory
+    // outputBuffer->fndBuffer = fnd;
+    // memcpy(outputBuffer->dotArrayBuffer, dot, sizeof(dot));
 }
