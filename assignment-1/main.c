@@ -34,7 +34,7 @@ int main() {
 
 void _main(const int semID) {
     static enum _mode mode = CLOCK;
-    bool quitFlag = false;
+    bool modeChanged, quitFlag = false;
 
     struct _clockPayload clockPayload;
 
@@ -42,11 +42,16 @@ void _main(const int semID) {
         // wait for input's payload
         semop(semID, &p[SEM_INPUT_TO_MAIN], 1);
 
+        modeChanged = false;
         if (inputBuffer->hasInput) {
             switch (inputBuffer->key) {
                 case KEY_VOLUMEDOWN:
+                    mode = (mode + MODES_CNT - 1) % MODES_CNT;
+                    modeChanged = true;
                     break;
                 case KEY_VOLUMEUP:
+                    mode = (mode + 1) % MODES_CNT;
+                    modeChanged = true;
                     break;
                 case KEY_BACK:
                     quitFlag = true;
@@ -63,13 +68,18 @@ void _main(const int semID) {
 
         switch (mode) {
             case CLOCK:
+                clockPayload.firstPayload = false;
                 clockPayload.increaseHour = false;
                 clockPayload.increaseMinute = false;
-                clockPayload.modeChanged = false;
+                clockPayload.toggleEdit = false;
                 clockPayload.resetClock = false;
 
+                if (modeChanged) {
+                    clockPayload.firstPayload = true;
+                }
+
                 if (inputBuffer->switches[1]) {
-                    clockPayload.modeChanged = true;
+                    clockPayload.toggleEdit = true;
                 } else if (inputBuffer->switches[2]) {
                     clockPayload.resetClock = true;
                 } else if (inputBuffer->switches[3]) {
@@ -121,51 +131,67 @@ void clockMode(const struct _clockPayload* payload) {
     time_t rawtime;
     time(&rawtime);
     const struct tm* timeinfo = localtime(&rawtime);
-    const int hour = timeinfo->tm_hour;
-    const int minute = timeinfo->tm_min;
-    const int second = timeinfo->tm_sec;
-    const int time = hour * 100 + minute;
-    int fnd, leds;
+    const int deviceSec = timeinfo->tm_sec;
+    const int deviceMinutes = timeinfo->tm_hour * 60 + timeinfo->tm_min;
 
-    static int editHour, editMinute;
+    static int offset = 0, tmpOffset = 0;
     static bool inEdit = false;
 
-    if (payload->resetClock && inEdit) {
+    int fnd, leds;
+
+    // Just changed into Clock mode
+    if (payload->firstPayload) {
+        tmpOffset = offset;
         inEdit = false;
-    } else if (payload->modeChanged) {
-        inEdit = !inEdit;
     }
 
+    // In normal option
     if (!inEdit) {
-        leds = LED_1;
-        fnd = time;
-    } else {
-        if (payload->modeChanged) {
-            editHour = hour;
-            editMinute = minute;
-            leds = LED_3 | LED_4;
-        } else if (second % 2 == 0) {
-            leds = LED_3;
-        } else {
-            leds = LED_4;
-        }
+        // Trigger to edit option
+        if (payload->toggleEdit) {
+            inEdit = true;
 
-        if (payload->increaseMinute) {
-            editMinute++;
-            if (editMinute >= 60) {
-                editHour++;
+            leds = LED_3 | LED_4;
+        } else {
+            leds = LED_1;
+        }
+    }
+    // In edit option
+    else {
+        // Trigger to normal option
+        if (payload->toggleEdit) {
+            inEdit = false;
+            offset = tmpOffset;
+
+            leds = LED_1;
+        } else {
+            if (payload->increaseHour) {
+                tmpOffset += 60;
+            } else if (payload->increaseMinute) {
+                tmpOffset += 1;
+            } else if (payload->resetClock) {
+                inEdit = false;
+                offset = tmpOffset = 0;
+
+                leds = LED_1;
+            }
+
+            // Toggle between LED(3) and LED(4)
+            if ((deviceSec % 2) == 0) {
+                leds = LED_3;
+            } else {
+                leds = LED_4;
             }
         }
-        if (payload->increaseHour) {
-            editHour++;
-        }
-
-        editHour %= 24;
-        editMinute %= 60;
-
-        fnd = editHour * 100 + editMinute;
+        tmpOffset %= 24 * 60;
     }
 
+    // Calculate time with offset
+    const int savedHour = ((deviceMinutes + tmpOffset) / 60) % 24;
+    const int savedMin = (deviceMinutes + tmpOffset) % 60;
+    fnd = savedHour * 100 + savedMin;
+
+    // Save to shared memory
     outputBuffer->ledBuffer = leds;
     outputBuffer->fndBuffer = fnd;
 }

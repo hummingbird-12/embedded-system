@@ -3,14 +3,21 @@
 
 #define MODES_CNT 4
 
+enum _mode { CLOCK, COUNTER, TEXT_EDITOR, DRAW_BOARD };
+
 struct _clockPayload {
-    bool modeChanged;
+    bool firstPayload;
+    bool toggleEdit;
     bool increaseHour;
     bool increaseMinute;
     bool resetClock;
 };
 
-enum _mode { CLOCK, COUNTER, TEXT_EDITOR, DRAW_BOARD };
+struct _counterPayload {};
+
+struct _textEditorPayload {};
+
+struct _drawBoardPayload {};
 
 void _main(const int);
 

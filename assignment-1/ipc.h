@@ -10,7 +10,6 @@
 
 #define SHM_KEY_1 (key_t) 0x10
 #define SHM_KEY_2 (key_t) 0x20
-#define SHM_SIZE 2048
 
 typedef enum _processType { MAIN, INPUT, OUTPUT } processType;
 
