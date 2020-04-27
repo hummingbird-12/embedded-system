@@ -29,7 +29,7 @@ const unsigned char DOT_A[] = {
     (DOT_0110 << 4) + DOT_0011   // @@. ..@@
 };
 
-const unsigned char DOT_EMPTY[10] = {
+const unsigned char DOT_EMPTY[] = {
     DOT_0000,  // ... ....
     DOT_0000,  // ... ....
     DOT_0000,  // ... ....
@@ -124,7 +124,47 @@ void resetDevices() {
     textLcdReset();
 }
 
-void dotPrint_1A(const char data) {
+void dotPrintArray(const bool data[DOT_ROWS][DOT_COLS]) {
+    unsigned char processed[DOT_ROWS] = {'\0'};
+    int i, j;
+
+    deviceLog(DOT, INFO, "Requested print array:\n");
+#ifdef _DEBUG_FLAG_
+    for (i = 0; i < DOT_ROWS; i++) {
+        char row[DOT_COLS + 1] = {'\0'};
+        for (j = 0; j < DOT_COLS; j++) {
+            row[j] = data[i][j] ? '1' : '0';
+        }
+        row[DOT_COLS] = '\n';
+        deviceLog(DOT, INFO, row);
+    }
+#endif
+
+    for (i = 0; i < DOT_ROWS; i++) {
+        for (j = 0; j < DOT_COLS; j++) {
+            if (data[i][j]) {
+                processed[i] += 1 << (DOT_COLS - 1 - j);
+            }
+        }
+    }
+
+    writeToDevice(DOT, processed, DOT_ROWS);
+
+    deviceLog(DOT, INFO, "Printed array:\n");
+#ifdef _DEBUG_FLAG_
+    for (i = 0; i < DOT_ROWS; i++) {
+        char row[DOT_COLS + 2] = {'\0'};
+        for (j = 0; j < DOT_COLS; j++) {
+            row[j] =
+                ((processed[i] & (1 << (DOT_COLS - 1 - j))) != 0) ? '@' : '.';
+        }
+        row[DOT_COLS] = '\n';
+        deviceLog(DOT, INFO, row);
+    }
+#endif
+}
+
+void dotPrintChar(const char data) {
     deviceLog(DOT, INFO, "Requested print value: '%c'\n", data);
 
     switch (data) {
@@ -153,6 +193,9 @@ void dotReset() {
 }
 
 void fndPrint(const int data) {
+    unsigned char digits[FND_MAX_DIGITS + 1] = {'\0'};
+    int i, digit = 1;
+
     deviceLog(FND, INFO, "Requested print value: %d\n", data);
 
     if (data < 0 || data > 9999) {
@@ -160,8 +203,6 @@ void fndPrint(const int data) {
         return;
     }
 
-    unsigned char digits[FND_MAX_DIGITS + 1] = {'\0'};
-    int digit = 1, i;
     for (i = FND_MAX_DIGITS - 1; i >= 0; i--) {
         digits[i] = (data / digit) % 10;
         digit *= 10;
@@ -202,16 +243,17 @@ void ledReset() {
 }
 
 void textLcdPrint(const char* data) {
+    char processed[TEXT_LCD_MAX_LEN + 1] = {'\0'};
+    int dataLength = strlen(data);
+
     deviceLog(TEXT_LCD, INFO, "Requested print value: %s\n", data);
 
-    int dataLength = strlen(data);
     if (dataLength > TEXT_LCD_MAX_LEN) {
         deviceLog(TEXT_LCD, WARNING, "String exceeded max length (32): %d\n",
                   dataLength);
         dataLength = TEXT_LCD_MAX_LEN;
     }
 
-    char processed[TEXT_LCD_MAX_LEN + 1] = {'\0'};
     strncpy(processed, data, TEXT_LCD_MAX_LEN);
     memset(processed + dataLength, ' ', TEXT_LCD_MAX_LEN - dataLength);
 

@@ -5,22 +5,34 @@ extern struct shmbuf *fromInput, *toOutput;
 
 enum _MODE { CLOCK, COUNTER, TEXT_EDITOR, DRAW_BOARD } mode = CLOCK;
 
-#define TEST_SLEEP 3
+#define TEST_SLEEP 3  // FIXME: REMOVE LATER
 
-void testDot() {
+void testDot() {  // FIXME: REMOVE LATER
+    const bool testME[DOT_ROWS][DOT_COLS] = {
+        {0, 0, 0, 0, 0, 0, 0},  // .......
+        {0, 0, 0, 0, 0, 0, 0},  // .......
+        {0, 0, 1, 0, 1, 0, 0},  // ..@.@..
+        {0, 0, 1, 0, 1, 0, 0},  // ..@.@..
+        {0, 0, 1, 0, 1, 0, 0},  // ..@.@..
+        {0, 0, 0, 0, 0, 0, 0},  // .......
+        {0, 1, 0, 0, 0, 1, 0},  // .@...@.
+        {0, 1, 0, 0, 0, 1, 0},  // .@...@.
+        {0, 0, 1, 1, 1, 0, 0},  // ..@@@..
+        {0, 0, 0, 0, 0, 0, 0},  // .......
+    };
     printf("\n========== DOT TEST ==========\n");
-    dotPrint_1A('A');
+    dotPrintChar('A');
     sleep(TEST_SLEEP);
-    dotPrint_1A('!');
+    dotPrintChar('!');
     sleep(TEST_SLEEP);
-    dotPrint_1A('3');
+    dotPrintChar('1');
     sleep(TEST_SLEEP);
-    dotPrint_1A('1');
+    dotPrintArray(testME);
     sleep(TEST_SLEEP);
     printf("\n========== TEST END ==========\n");
 }
 
-void testFND() {
+void testFND() {  // FIXME: REMOVE LATER
     printf("\n========== FND TEST ==========\n");
     fndPrint(1234);
     sleep(TEST_SLEEP);
@@ -33,7 +45,7 @@ void testFND() {
     printf("\n========== TEST END ==========\n");
 }
 
-void testLED() {
+void testLED() {  // FIXME: REMOVE LATER
     printf("\n========== LED TEST ==========\n");
     ledPrint(255);
     sleep(TEST_SLEEP);
@@ -46,7 +58,7 @@ void testLED() {
     printf("\n========== TEST END ==========\n");
 }
 
-void testTEXT_LCD() {
+void testTEXT_LCD() {  // FIXME: REMOVE LATER
     printf("\n========== TEXT_LCD TEST ==========\n");
     textLcdPrint("Hi there");
     sleep(TEST_SLEEP);
@@ -63,14 +75,17 @@ int main() {
     // getSharedMemory(SHM_KEY_2, &toOutput);
 
     openDevices();
+    resetDevices();
+    sleep(TEST_SLEEP);
 
     testDot();
-    testFND();
-    testLED();
-    testTEXT_LCD();
+    // testFND();
+    // testLED();
+    // testTEXT_LCD();
+
+    // resetDevices();
 
     resetDevices();
-
     closeDevices();
 
     // switch (createForks()) {

@@ -27,6 +27,9 @@
 #define DOT_1110 0xE  // @@@.
 #define DOT_1111 0xF  // @@@@
 
+#define DOT_ROWS 10
+#define DOT_COLS 7
+
 #define FND_MAX_DIGITS 4
 
 #define FPGA_BASE_ADDR 0x08000000  // fpga_base address
@@ -44,7 +47,8 @@ void deviceLog(const enum _DEVICES, const enum _LOG_LEVEL, const char*, ...);
 void writeToDevice(const enum _DEVICES, const void*, const size_t);
 void resetDevices();
 
-void dotPrint_1A(const char);
+void dotPrintArray(const bool[DOT_ROWS][DOT_COLS]);
+void dotPrintChar(const char);
 void dotReset();
 
 void fndPrint(const int);
