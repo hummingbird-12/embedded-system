@@ -10,7 +10,6 @@
 
 #define SHM_KEY_1 (key_t) 0x10
 #define SHM_KEY_2 (key_t) 0x20
-#define SHM_KEY_3 (key_t) 0x30
 #define SHM_SIZE 2048
 
 typedef enum _processType { MAIN, INPUT, OUTPUT } processType;
@@ -23,9 +22,10 @@ union semun {
                               (Linux-specific) */
 };
 
-struct shmbuf {
-    int nread;
-    char buf[SHM_SIZE];
+struct _shmInBuf {
+    bool switches[SWITCH_CNT];
+    bool keys[KEYS_CNT];
+    bool hasInput;
 };
 
 struct _shmOutBuf {
@@ -38,7 +38,7 @@ struct _shmOutBuf {
 };
 
 struct sembuf p[SEM_CNT], v[SEM_CNT];
-struct shmbuf *fromInput;
+struct _shmInBuf *inputBuffer;
 struct _shmOutBuf *outputBuffer;
 
 processType createForks();

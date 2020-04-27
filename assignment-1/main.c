@@ -1,7 +1,7 @@
 #include "core.h"
 
 extern struct sembuf p[SEM_CNT], v[SEM_CNT];
-extern struct shmbuf* fromInput;
+extern struct _shmInBuf* inputBuffer;
 extern struct _shmOutBuf* outputBuffer;
 
 #define TEST_SLEEP 3  // FIXME: REMOVE LATER
@@ -70,8 +70,8 @@ void testTEXT_LCD() {  // FIXME: REMOVE LATER
 
 int main() {
     int semID = getSemaphore();
-    // getSharedMemory(SHM_KEY_1, &fromInput);
-    getSharedMemory(SHM_KEY_3, (void**) &outputBuffer,
+    getSharedMemory(SHM_KEY_1, (void**) &inputBuffer, sizeof(struct _shmInBuf));
+    getSharedMemory(SHM_KEY_2, (void**) &outputBuffer,
                     sizeof(struct _shmOutBuf));
 
     openDevices();

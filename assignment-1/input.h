@@ -5,6 +5,7 @@
 #define BUTTON_PRESSED 1
 
 #define KEY_MAX_CNT 64
+#define KEYS_CNT 4
 
 #define SWITCH_CNT 9
 

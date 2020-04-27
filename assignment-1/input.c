@@ -1,7 +1,7 @@
 #include "core.h"
 
 extern struct sembuf p[SEM_CNT], v[SEM_CNT];
-extern struct shmbuf* fromInput;
+extern struct _shmInBuf* inputBuffer;
 
 void input(const int semID) {
     int keyFD, switchFD;
@@ -75,8 +75,8 @@ void readSwitches(const int semID, const int switchFD) {
 }
 
 void writeToSHM(const int semID, const int pressedButtons) {
-    if (pressedButtons != 0) {
-        sprintf(fromInput->buf, "%d", pressedButtons);
-        fromInput->nread = strlen(fromInput->buf);
-    }
+    // if (pressedButtons != 0) {
+    //     sprintf(fromInput->buf, "%d", pressedButtons);
+    //     fromInput->nread = strlen(fromInput->buf);
+    // }
 }
