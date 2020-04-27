@@ -1,7 +1,7 @@
 #include "core.h"
 
-const char DEVICE_PATHS[][20] = {DOT_DEVICE, FND_DEVICE, LED_DEVICE,
-                                 TEXT_LCD_DEVICE};
+const char DEVICE_PATHS[][21] = {DOT_DEVICE,      FND_DEVICE, LED_DEVICE,
+                                 TEXT_LCD_DEVICE, KEY_DEVICE, SWITCH_DEVICE};
 
 const unsigned char DOT_1[] = {
     (DOT_0000 << 4) + DOT_1100,  // ... @@..
@@ -51,9 +51,11 @@ void openDevices() {
     devices[FND] = open(FND_DEVICE, O_RDWR);
     devices[LED] = open(LED_DEVICE, O_RDWR | O_SYNC);
     devices[TEXT_LCD] = open(TEXT_LCD_DEVICE, O_WRONLY);
+    devices[KEY] = open(KEY_DEVICE, O_RDONLY | O_NONBLOCK);
+    devices[SWITCH] = open(SWITCH_DEVICE, O_RDWR);
 
-    enum _DEVICES dev;
-    for (dev = DOT; dev < DEVICES_CNT; dev++) {
+    enum _devices dev;
+    for (dev = 0; dev < DEVICES_CNT; dev++) {
         if (devices[dev] < 0) {
             deviceLog(dev, ERROR, "Error while opening device: %s\n",
                       DEVICE_PATHS[dev]);
@@ -72,8 +74,8 @@ void openDevices() {
 }
 
 void closeDevices() {
-    enum _DEVICES dev;
-    for (dev = DOT; dev < DEVICES_CNT; dev++) {
+    enum _devices dev;
+    for (dev = 0; dev < DEVICES_CNT; dev++) {
         if (devices[dev] < 0) {
             deviceLog(dev, WARNING, "Error while closing device: %s\n",
                       DEVICE_PATHS[dev]);
@@ -87,7 +89,7 @@ void closeDevices() {
     }
 }
 
-void deviceLog(const enum _DEVICES device, const enum _LOG_LEVEL level,
+void deviceLog(const enum _devices device, const enum _logLevel level,
                const char* format, ...) {
 #ifndef _DEBUG_FLAG_
     if (level != ERROR) {
@@ -105,8 +107,13 @@ void deviceLog(const enum _DEVICES device, const enum _LOG_LEVEL level,
     va_end(args);
 }
 
-void writeToDevice(const enum _DEVICES device, const void* data,
+void writeToDevice(const enum _devices device, const void* data,
                    const size_t size) {
+    if (device == KEY || device == SWITCH) {
+        deviceLog(device, ERROR, "Can not write to device\n");
+        return;
+    }
+
     if (device == LED) {
         *ledAddr = *((int*) data);
     } else {
@@ -271,4 +278,40 @@ void textLcdReset() {
     textLcdPrint("");
 
     deviceLog(TEXT_LCD, INFO, "Resetted device state\n");
+}
+
+enum _keys keyRead() {
+    struct input_event keyBuffer[KEY_MAX_CNT];
+    const int keyEventSize = sizeof(struct input_event);
+
+    if (read(devices[KEY], keyBuffer, sizeof(keyBuffer)) >= keyEventSize &&
+        keyBuffer[0].value == BUTTON_PRESSED) {
+        switch (keyBuffer[0].code) {
+            case KEY_VOLUMEDOWN:
+            case KEY_VOLUMEUP:
+            case KEY_BACK:
+            case KEY_POWER:
+                deviceLog(KEY, INFO, "Received input: %d\n", keyBuffer[0].code);
+                return keyBuffer[0].code;
+                break;
+            default:
+                break;
+        }
+    }
+    return 0;
+}
+
+int switchRead() {
+    unsigned char switchBuffer[SWITCH_CNT];
+    int i, processed = 0;
+
+    read(devices[SWITCH], &switchBuffer, sizeof(switchBuffer));
+    for (i = 0; i < SWITCH_CNT; i++) {
+        processed *= 10;
+        if (switchBuffer[i] == BUTTON_PRESSED) {
+            processed += 1;
+        }
+    }
+    deviceLog(SWITCH, INFO, "Received input: %09d\n", processed);
+    return processed;
 }

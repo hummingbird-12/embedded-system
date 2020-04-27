@@ -1,5 +1,8 @@
 #include "core.h"
 
+extern struct _shmInBuf *inputBuffer;
+extern struct _shmOutBuf *outputBuffer;
+
 processType createForks() {
     pid_t pid;
     switch ((pid = fork())) {
@@ -59,4 +62,19 @@ int getSharedMemory(const key_t key, void **buf, const size_t bufferSize) {
     }
 
     return shmID;
+}
+
+void initializeSharedMemory() {
+    inputBuffer->hasInput = false;
+    inputBuffer->key = -1;
+    memset(inputBuffer->switches, false, sizeof(inputBuffer->switches));
+
+    outputBuffer->fndBuffer = 0;
+    outputBuffer->ledBuffer = 0;
+    outputBuffer->dotCharBuffer = ' ';
+    memset(outputBuffer->inUse, false, sizeof(outputBuffer->inUse));
+    memset(outputBuffer->dotArrayBuffer, false,
+           sizeof(outputBuffer->dotArrayBuffer));
+    memset(outputBuffer->textLcdBuffer, '\0',
+           sizeof(outputBuffer->textLcdBuffer));
 }

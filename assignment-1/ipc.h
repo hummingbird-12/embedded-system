@@ -23,8 +23,8 @@ union semun {
 };
 
 struct _shmInBuf {
-    bool switches[SWITCH_CNT];
-    bool keys[KEYS_CNT];
+    bool switches[SWITCH_CNT + 1];
+    enum _keys key;
     bool hasInput;
 };
 
@@ -33,7 +33,7 @@ struct _shmOutBuf {
     char textLcdBuffer[TEXT_LCD_MAX_LEN];
     int fndBuffer;
     int ledBuffer;
-    bool inUse[DEVICES_CNT];
+    bool inUse[OUTPUT_DEVICES_CNT];
     char dotCharBuffer;
 };
 
@@ -44,5 +44,6 @@ struct _shmOutBuf *outputBuffer;
 processType createForks();
 int getSemaphore();
 int getSharedMemory(const key_t, void **, const size_t);
+void initializeSharedMemory();
 
 #endif /* _IPC_H_INCLUDED_ */

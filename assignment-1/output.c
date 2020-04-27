@@ -8,7 +8,7 @@ void output(const int semID) {
         // wait for main's payload
         semop(semID, &p[SEM_MAIN_TO_OUTPUT], 1);
 
-        enum _DEVICES i;
+        enum _devices i;
         for (i = 0; i < DEVICES_CNT; i++) {
             switch (i) {
                 case DOT:
@@ -24,6 +24,8 @@ void output(const int semID) {
                     break;
                 case TEXT_LCD:
                     outputBuffer->inUse[i] ? textLcdReset() : textLcdReset();
+                    break;
+                default:
                     break;
             }
         }

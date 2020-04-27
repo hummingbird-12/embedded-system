@@ -4,79 +4,27 @@ extern struct sembuf p[SEM_CNT], v[SEM_CNT];
 extern struct _shmInBuf* inputBuffer;
 
 void input(const int semID) {
-    int keyFD, switchFD;
-    const char* keyDevice = "/dev/input/event0";
-    const char* switchDevice = "/dev/fpga_push_switch";
-
-    if ((keyFD = open(keyDevice, O_RDONLY | O_NONBLOCK)) == -1) {
-        printf("%s is not a vaild device.\n\n", keyDevice);
-        throwError("Error opening device!");
-    }
-
-    if ((switchFD = open(switchDevice, O_RDWR)) == -1) {
-        printf("%s is not a vaild device.\n\n", switchDevice);
-        throwError("Error opening device!");
-    }
+    int switches;
+    enum _keys key;
+    enum _switches sw;
 
     while (true) {
-        // readKeys(semID, keyFD);
-        // readSwitches(semID, switchFD);
+        inputBuffer->hasInput = false;
 
-        printf(">>>> READ <<<<\n");
+        if ((key = keyRead()) != 0) {
+            inputBuffer->hasInput = true;
+            inputBuffer->key = key;
+        }
+
+        if ((switches = switchRead()) != 0) {
+            inputBuffer->hasInput = true;
+            for (sw = SWITCH_CNT; sw >= 1; sw--) {
+                inputBuffer->switches[sw] = switches % 10;
+                switches /= 10;
+            }
+        }
 
         semop(semID, &v[SEM_INPUT_TO_MAIN], 1);
         semop(semID, &p[SEM_MAIN_TO_INPUT], 1);
-
-        // usleep(200000);
     }
-}
-
-void readKeys(const int semID, const int keyFD) {
-    struct input_event keyBuffer[KEY_MAX_CNT];
-    const int keyEventSize = sizeof(struct input_event);
-    int pressedButtons = 0;
-
-    if (read(keyFD, keyBuffer, sizeof(keyBuffer)) >= keyEventSize &&
-        keyBuffer[0].value == BUTTON_PRESSED) {
-        switch (keyBuffer[0].code) {
-            case 114:
-                pressedButtons = VOL_DOWN;
-                break;
-            case 115:
-                pressedButtons = VOL_UP;
-                break;
-            case 116:
-                pressedButtons = PROG;
-                break;
-            case 158:
-                pressedButtons = BACK;
-                break;
-            default:
-                pressedButtons = 0;
-                break;
-        }
-
-        writeToSHM(semID, pressedButtons);
-    }
-}
-
-void readSwitches(const int semID, const int switchFD) {
-    unsigned char switchBuffer[SWITCH_CNT];
-    int i, pressedButtons = 0;
-
-    read(switchFD, &switchBuffer, sizeof(switchBuffer));
-    for (i = 0; i < SWITCH_CNT; i++) {
-        if (switchBuffer[i] == BUTTON_PRESSED) {
-            pressedButtons |= 1 << i;
-        }
-    }
-
-    writeToSHM(semID, pressedButtons);
-}
-
-void writeToSHM(const int semID, const int pressedButtons) {
-    // if (pressedButtons != 0) {
-    //     sprintf(fromInput->buf, "%d", pressedButtons);
-    //     fromInput->nread = strlen(fromInput->buf);
-    // }
 }

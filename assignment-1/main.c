@@ -73,6 +73,7 @@ int main() {
     getSharedMemory(SHM_KEY_1, (void**) &inputBuffer, sizeof(struct _shmInBuf));
     getSharedMemory(SHM_KEY_2, (void**) &outputBuffer,
                     sizeof(struct _shmOutBuf));
+    initializeSharedMemory();
 
     openDevices();
     resetDevices();
@@ -131,42 +132,6 @@ void _main(const int semID) {
         semop(semID, &p[SEM_OUTPUT_TO_MAIN], 1);
 
         usleep(300000);
-
-        // sscanf(fromInput->buf, "%d", &pressedButtons);
-        // for (i = 0; i < BUTTONS_CNT; i++) {
-        //     if ((pressedButtons & (1 << i)) != 0) {
-        //         switch (1 << i) {
-        //             case SW1:
-        //                 break;
-        //             case SW2:
-        //                 break;
-        //             case SW3:
-        //                 break;
-        //             case SW4:
-        //                 break;
-        //             case SW5:
-        //                 break;
-        //             case SW6:
-        //                 break;
-        //             case SW7:
-        //                 break;
-        //             case SW8:
-        //                 break;
-        //             case SW9:
-        //                 break;
-        //             case PROG:
-        //                 break;
-        //             case VOL_UP:
-        //                 mode = (mode + 1) % MODES_CNT;
-        //                 break;
-        //             case VOL_DOWN:
-        //                 mode = (mode + MODES_CNT - 1) % MODES_CNT;
-        //                 break;
-        //             case BACK:
-        //                 break;
-        //         }
-        //     }
-        // }
     }
 }
 

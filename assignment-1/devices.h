@@ -3,13 +3,19 @@
 
 #define _DEBUG_FLAG_
 
-#define DEVICES_CNT 4
+#define DEVICES_CNT 6
+#define INPUT_DEVICES_CNT 2
+#define OUTPUT_DEVICES_CNT 4
 
 #define DOT_DEVICE "/dev/fpga_dot"
 #define FND_DEVICE "/dev/fpga_fnd"
 #define LED_DEVICE "/dev/mem"
 #define TEXT_LCD_DEVICE "/dev/fpga_text_lcd"
+#define KEY_DEVICE "/dev/input/event0"
+#define SWITCH_DEVICE "/dev/fpga_push_switch"
 
+#define DOT_ROWS 10
+#define DOT_COLS 7
 #define DOT_0000 0x0  // ....
 #define DOT_0001 0x1  // ...@
 #define DOT_0010 0x2  // ..@.
@@ -27,9 +33,6 @@
 #define DOT_1110 0xE  // @@@.
 #define DOT_1111 0xF  // @@@@
 
-#define DOT_ROWS 10
-#define DOT_COLS 7
-
 #define FND_MAX_DIGITS 4
 
 #define FPGA_BASE_ADDR 0x08000000  // fpga_base address
@@ -46,13 +49,27 @@
 
 #define TEXT_LCD_MAX_LEN 32
 
-enum _DEVICES { DOT, FND, LED, TEXT_LCD };
-enum _LOG_LEVEL { ERROR, WARNING, INFO };
+#define KEY_MAX_CNT 64
+#define KEYS_CNT 4
+
+#define SWITCH_CNT 9
+
+#define BUTTON_PRESSED 1
+
+enum _devices { DOT, FND, LED, TEXT_LCD, KEY, SWITCH };
+enum _logLevel { ERROR, WARNING, INFO };
+enum _keys {
+    VOL_DOWN = KEY_VOLUMEDOWN,
+    VOL_UP = KEY_VOLUMEUP,
+    BACK = KEY_BACK,
+    PROG = KEY_POWER
+};
+enum _switches { SW1 = 1, SW2, SW3, SW4, SW5, SW6, SW7, SW8, SW9 };
 
 void openDevices();
 void closeDevices();
-void deviceLog(const enum _DEVICES, const enum _LOG_LEVEL, const char*, ...);
-void writeToDevice(const enum _DEVICES, const void*, const size_t);
+void deviceLog(const enum _devices, const enum _logLevel, const char *, ...);
+void writeToDevice(const enum _devices, const void *, const size_t);
 void resetDevices();
 
 void dotPrintArray(const bool[DOT_ROWS][DOT_COLS]);
@@ -65,7 +82,10 @@ void fndReset();
 void ledPrint(const int);
 void ledReset();
 
-void textLcdPrint(const char*);
+void textLcdPrint(const char *);
 void textLcdReset();
+
+enum _keys keyRead();
+int switchRead();
 
 #endif /* _DEVICES_H_INCLUDED_ */
