@@ -7,6 +7,8 @@ void output(const int semID) {
     bool currentInUse[OUTPUT_DEVICES_CNT];
     memset(currentInUse, false, sizeof(currentInUse));
 
+    resetDevices();
+
     while (true) {
         // wait for main's payload
         semop(semID, &p[SEM_MAIN_TO_OUTPUT], 1);

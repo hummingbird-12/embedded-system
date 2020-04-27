@@ -38,12 +38,6 @@ void _main(const int semID) {
 
     struct _clockPayload clockPayload;
 
-    memset(outputBuffer->inUse, false, sizeof(outputBuffer->inUse));
-    // tell output payload is ready
-    semop(semID, &v[SEM_MAIN_TO_OUTPUT], 1);
-    // wait for output to complete
-    semop(semID, &p[SEM_OUTPUT_TO_MAIN], 1);
-
     while (true) {
         // wait for input's payload
         semop(semID, &p[SEM_INPUT_TO_MAIN], 1);
