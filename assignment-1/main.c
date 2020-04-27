@@ -13,13 +13,11 @@ int main() {
     initializeSharedMemory();
 
     openDevices();
-    resetDevices();
 
     switch (createForks()) {
         case MAIN:
             _main(semID);
             killChildProcesses();
-            resetDevices();
             closeDevices();
             removeIpcObjects(semID, shmInID, shmOutID);
             break;
@@ -39,6 +37,12 @@ void _main(const int semID) {
     bool quitFlag = false;
 
     struct _clockPayload clockPayload;
+
+    memset(outputBuffer->inUse, false, sizeof(outputBuffer->inUse));
+    // tell output payload is ready
+    semop(semID, &v[SEM_MAIN_TO_OUTPUT], 1);
+    // wait for output to complete
+    semop(semID, &p[SEM_OUTPUT_TO_MAIN], 1);
 
     while (true) {
         // wait for input's payload
@@ -101,6 +105,12 @@ void _main(const int semID) {
         // tell input payload is read
         semop(semID, &v[SEM_MAIN_TO_INPUT], 1);
     }
+
+    memset(outputBuffer->inUse, false, sizeof(outputBuffer->inUse));
+    // tell output payload is ready
+    semop(semID, &v[SEM_MAIN_TO_OUTPUT], 1);
+    // wait for output to complete
+    semop(semID, &p[SEM_OUTPUT_TO_MAIN], 1);
 }
 
 void throwError(const char* error) {

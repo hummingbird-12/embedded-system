@@ -76,7 +76,7 @@ void initializeSharedMemory() {
 
     outputBuffer->fndBuffer = 0;
     outputBuffer->ledBuffer = 0;
-    outputBuffer->dotCharBuffer = ' ';
+    outputBuffer->dotCharBuffer = '\0';
     memset(outputBuffer->inUse, false, sizeof(outputBuffer->inUse));
     memset(outputBuffer->dotArrayBuffer, false,
            sizeof(outputBuffer->dotArrayBuffer));
