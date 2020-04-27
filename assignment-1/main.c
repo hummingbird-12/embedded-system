@@ -4,6 +4,13 @@ extern struct sembuf p[SEM_CNT], v[SEM_CNT];
 extern struct _shmInBuf* inputBuffer;
 extern struct _shmOutBuf* outputBuffer;
 
+const char TEXT_EDITOR_ALPHA[][3] = {
+    "",                   // -
+    ".QZ", "ABC", "DEF",  // SW(1)~SW(3)
+    "GHI", "JKL", "MNO",  // SW(4)~SW(6)
+    "PRS", "TUV", "WXY"   // SW(7)~SW(9)
+};
+
 int main() {
     int semID = getSemaphore();
     int shmInID = getSharedMemory(SHM_KEY_1, (void**) &inputBuffer,
@@ -109,10 +116,27 @@ void _main(const int semID) {
                 counterMode(&counterPl);
                 break;
             case TEXT_EDITOR:
+                textEditorPl = (textEditorPayload){.firstPayload = false,
+                                                   .clearText = false,
+                                                   .triggerAlNum = false,
+                                                   .putSpace = false};
+                memset(textEditorPl.keypad, false, sizeof(textEditorPl.keypad));
 
                 if (modeChanged) {
                     textEditorPl.firstPayload = true;
                 }
+
+                if (inputBuffer->switches[2] && inputBuffer->switches[3]) {
+                    textEditorPl.clearText = true;
+                } else if (inputBuffer->switches[5] &&
+                           inputBuffer->switches[6]) {
+                    textEditorPl.triggerAlNum = true;
+                } else if (inputBuffer->switches[8] &&
+                           inputBuffer->switches[9]) {
+                    textEditorPl.putSpace = true;
+                }
+                memcpy(textEditorPl.keypad, inputBuffer->switches,
+                       sizeof(SWITCH_CNT + 1));
 
                 textEditorMode(&textEditorPl);
                 break;
@@ -328,18 +352,92 @@ void textEditorMode(const textEditorPayload* payload) {
     outputBuffer->inUse[FND] = true;
     outputBuffer->inUse[LED] = false;
     outputBuffer->inUse[TEXT_LCD] = true;
-    // int fnd;
-    // char dot;
-    // char textLcd[TEXT_LCD_MAX_LEN];
+
+    int i;
+    char character;
+    bool moveIndex;
+
+    static char text[TEXT_LCD_MAX_LEN] = {'\0'};
+    static bool alpha = true;
+    static int count = 0;
+    static int index = -1;
+    static int prevKey = -1;
+    static int prevKeyCount = 0;
 
     // Just changed into Text Editor mode
     if (payload->firstPayload) {
+        memset(text, ' ', TEXT_LCD_MAX_LEN);
+        alpha = true;
+        count = 0;
+        index = -1;
+        prevKey = -1;
+        prevKeyCount = 0;
+    }
+
+    moveIndex = true;
+    character = '\0';
+    if (payload->clearText) {
+        memset(text, ' ', TEXT_LCD_MAX_LEN);
+        index = -1;
+        count++;
+        prevKey = -1;
+        prevKeyCount = 0;
+    } else if (payload->putSpace) {
+        character = ' ';
+        count++;
+        prevKey = -1;
+        prevKeyCount = 0;
+    } else if (payload->triggerAlNum) {
+        alpha = !alpha;
+        count++;
+        prevKey = -1;
+        prevKeyCount = 0;
+    } else if (alpha) {
+        for (i = 1; i <= SWITCH_CNT; i++) {
+            if (payload->keypad[i]) {
+                if (i == prevKey) {
+                    prevKeyCount = (prevKeyCount + 1) % 3;
+                    moveIndex = false;
+                } else {
+                    prevKey = i;
+                    prevKeyCount = 0;
+                }
+                character = TEXT_EDITOR_ALPHA[i][prevKeyCount];
+                count++;
+                break;
+            }
+        }
+    } else {
+        for (i = 1; i <= SWITCH_CNT; i++) {
+            if (payload->keypad[i]) {
+                character = '0' + i;
+                count++;
+                prevKey = -1;
+                prevKeyCount = 0;
+                break;
+            }
+        }
+    }
+
+    if (character != '\0') {
+        if (index >= TEXT_LCD_MAX_LEN) {
+            char* temp = (char*) calloc(TEXT_LCD_MAX_LEN + 1, sizeof(char));
+            memcpy(temp, text + 1, TEXT_LCD_MAX_LEN - 1);
+            memcpy(text, temp, TEXT_LCD_MAX_LEN - 1);
+            free(temp);
+            text[TEXT_LCD_MAX_LEN - 1] = character;
+        } else {
+            if (moveIndex) {
+                index++;
+            }
+            text[index] = character;
+        }
     }
 
     // Save to shared memory
-    // outputBuffer->fndBuffer = fnd;
-    // outputBuffer->dotCharBuffer = dot;
-    // memcpy(outputBuffer->textLcdBuffer, textLcd, strlen(textLcd));
+    outputBuffer->fndBuffer = count;
+    outputBuffer->dotCharBuffer = alpha ? 'A' : '1';
+    memcpy(outputBuffer->textLcdBuffer, text, TEXT_LCD_MAX_LEN);
 }
 
 void drawBoardMode(const drawBoardPayload* payload) {

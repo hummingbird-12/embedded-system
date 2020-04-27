@@ -25,7 +25,11 @@ typedef struct _counterPayload {
 } counterPayload;
 
 typedef struct _textEditorPayload {
+    bool keypad[SWITCH_CNT + 1];
     bool firstPayload;
+    bool clearText;
+    bool triggerAlNum;
+    bool putSpace;
 } textEditorPayload;
 
 typedef struct _drawBoardPayload {
