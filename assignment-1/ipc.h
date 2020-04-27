@@ -45,5 +45,8 @@ processType createForks();
 int getSemaphore();
 int getSharedMemory(const key_t, void **, const size_t);
 void initializeSharedMemory();
+void removeSemaphores(const int);
+void removeSharedMemories(const int, const int);
+void removeIpcObjects(const int, const int, const int);
 
 #endif /* _IPC_H_INCLUDED_ */

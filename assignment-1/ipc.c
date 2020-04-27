@@ -78,3 +78,26 @@ void initializeSharedMemory() {
     memset(outputBuffer->textLcdBuffer, '\0',
            sizeof(outputBuffer->textLcdBuffer));
 }
+
+void removeSemaphores(const int semID) {
+    int i;
+    for (i = 0; i < SEM_CNT; i++) {
+        if (semctl(semID, i, IPC_RMID, 0) == -1) {
+            throwError("Error while removing semaphore!");
+        }
+    }
+}
+
+void removeSharedMemories(const int shmInID, const int shmOutID) {
+    if (shmctl(shmInID, IPC_RMID, 0) == -1) {
+        throwError("Error while removing shared memory!");
+    }
+    if (shmctl(shmOutID, IPC_RMID, 0) == -1) {
+        throwError("Error while removing shared memory!");
+    }
+}
+
+void removeIpcObjects(const int semID, const int shmInID, const int shmOutID) {
+    removeSemaphores(semID);
+    removeSharedMemories(shmInID, shmOutID);
+}

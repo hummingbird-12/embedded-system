@@ -70,9 +70,10 @@ void testTEXT_LCD() {  // FIXME: REMOVE LATER
 
 int main() {
     int semID = getSemaphore();
-    getSharedMemory(SHM_KEY_1, (void**) &inputBuffer, sizeof(struct _shmInBuf));
-    getSharedMemory(SHM_KEY_2, (void**) &outputBuffer,
-                    sizeof(struct _shmOutBuf));
+    int shmInID = getSharedMemory(SHM_KEY_1, (void**) &inputBuffer,
+                                  sizeof(struct _shmInBuf));
+    int shmOutID = getSharedMemory(SHM_KEY_2, (void**) &outputBuffer,
+                                   sizeof(struct _shmOutBuf));
     initializeSharedMemory();
 
     openDevices();
@@ -89,6 +90,7 @@ int main() {
             _main(semID);
             resetDevices();
             closeDevices();
+            removeIpcObjects(semID, shmInID, shmOutID);
             break;
         case INPUT:
             input(semID);
@@ -108,6 +110,21 @@ void _main(const int semID) {
         // wait for input's payload
         semop(semID, &p[SEM_INPUT_TO_MAIN], 1);
 
+        if (inputBuffer->hasInput) {
+            switch (inputBuffer->key) {
+                case KEY_VOLUMEDOWN:
+                    break;
+                case KEY_VOLUMEUP:
+                    break;
+                case KEY_BACK:
+                    break;
+                case KEY_POWER:
+                    break;
+                default:
+                    break;
+            }
+        }
+
         switch (mode) {
             case CLOCK:
                 clockPayload.resetClock = false;
@@ -123,15 +140,15 @@ void _main(const int semID) {
                 break;
         }
 
-        // tell input payload is read
-        semop(semID, &v[SEM_MAIN_TO_INPUT], 1);
-
         // tell output payload is ready
         semop(semID, &v[SEM_MAIN_TO_OUTPUT], 1);
         // wait for output to complete
         semop(semID, &p[SEM_OUTPUT_TO_MAIN], 1);
 
-        usleep(300000);
+        usleep(1000000);
+
+        // tell input payload is read
+        semop(semID, &v[SEM_MAIN_TO_INPUT], 1);
     }
 }
 

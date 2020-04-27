@@ -96,7 +96,7 @@ void deviceLog(const enum _devices device, const enum _logLevel level,
         return;
     }
 #endif
-    const char NAMES[][9] = {"DOT", "FND", "LED", "TEXT_LCD"};
+    const char NAMES[][9] = {"DOT", "FND", "LED", "TEXT_LCD", "KEY", "SWITCH"};
     const char LEVELS[][8] = {"ERROR", "WARNING", "INFO"};
 
     printf("[%s] %s - ", NAMES[device], LEVELS[level]);
