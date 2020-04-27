@@ -4,70 +4,6 @@ extern struct sembuf p[SEM_CNT], v[SEM_CNT];
 extern struct _shmInBuf* inputBuffer;
 extern struct _shmOutBuf* outputBuffer;
 
-#define TEST_SLEEP 3  // FIXME: REMOVE LATER
-
-void testDot() {  // FIXME: REMOVE LATER
-    const bool testME[DOT_ROWS][DOT_COLS] = {
-        {0, 0, 0, 0, 0, 0, 0},  // .......
-        {0, 0, 0, 0, 0, 0, 0},  // .......
-        {0, 0, 1, 0, 1, 0, 0},  // ..@.@..
-        {0, 0, 1, 0, 1, 0, 0},  // ..@.@..
-        {0, 0, 1, 0, 1, 0, 0},  // ..@.@..
-        {0, 0, 0, 0, 0, 0, 0},  // .......
-        {0, 1, 0, 0, 0, 1, 0},  // .@...@.
-        {0, 1, 0, 0, 0, 1, 0},  // .@...@.
-        {0, 0, 1, 1, 1, 0, 0},  // ..@@@..
-        {0, 0, 0, 0, 0, 0, 0},  // .......
-    };
-    printf("\n========== DOT TEST ==========\n");
-    dotPrintChar('A');
-    sleep(TEST_SLEEP);
-    dotPrintChar('!');
-    sleep(TEST_SLEEP);
-    dotPrintChar('1');
-    sleep(TEST_SLEEP);
-    dotPrintArray(testME);
-    sleep(TEST_SLEEP);
-    printf("\n========== TEST END ==========\n");
-}
-
-void testFND() {  // FIXME: REMOVE LATER
-    printf("\n========== FND TEST ==========\n");
-    fndPrint(1234);
-    sleep(TEST_SLEEP);
-    fndPrint(-1);
-    sleep(TEST_SLEEP);
-    fndPrint(99999);
-    sleep(TEST_SLEEP);
-    fndPrint(123);
-    sleep(TEST_SLEEP);
-    printf("\n========== TEST END ==========\n");
-}
-
-void testLED() {  // FIXME: REMOVE LATER
-    printf("\n========== LED TEST ==========\n");
-    ledPrint(255);
-    sleep(TEST_SLEEP);
-    ledPrint(0);
-    sleep(TEST_SLEEP);
-    ledPrint(999);
-    sleep(TEST_SLEEP);
-    ledPrint(96);
-    sleep(TEST_SLEEP);
-    printf("\n========== TEST END ==========\n");
-}
-
-void testTEXT_LCD() {  // FIXME: REMOVE LATER
-    printf("\n========== TEXT_LCD TEST ==========\n");
-    textLcdPrint("Hi there");
-    sleep(TEST_SLEEP);
-    textLcdPrint("The quick brown fox jumped");
-    sleep(TEST_SLEEP);
-    textLcdPrint("The quick brown fox jumped over a lazy dog.");
-    sleep(TEST_SLEEP);
-    printf("\n========== TEST END ==========\n");
-}
-
 int main() {
     int semID = getSemaphore();
     int shmInID = getSharedMemory(SHM_KEY_1, (void**) &inputBuffer,
@@ -78,16 +14,11 @@ int main() {
 
     openDevices();
     resetDevices();
-    // sleep(TEST_SLEEP);
-
-    // testDot();
-    // testFND();
-    // testLED();
-    // testTEXT_LCD();
 
     switch (createForks()) {
         case MAIN:
             _main(semID);
+            killChildProcesses();
             resetDevices();
             closeDevices();
             removeIpcObjects(semID, shmInID, shmOutID);
@@ -105,7 +36,10 @@ int main() {
 
 void _main(const int semID) {
     static enum _mode mode = CLOCK;
+    bool quitFlag = false;
+
     struct _clockPayload clockPayload;
+
     while (true) {
         // wait for input's payload
         semop(semID, &p[SEM_INPUT_TO_MAIN], 1);
@@ -117,18 +51,34 @@ void _main(const int semID) {
                 case KEY_VOLUMEUP:
                     break;
                 case KEY_BACK:
+                    quitFlag = true;
                     break;
                 case KEY_POWER:
                     break;
                 default:
                     break;
             }
+            if (quitFlag) {
+                break;
+            }
         }
 
         switch (mode) {
             case CLOCK:
-                clockPayload.resetClock = false;
+                clockPayload.increaseHour = false;
+                clockPayload.increaseMinute = false;
                 clockPayload.modeChanged = false;
+                clockPayload.resetClock = false;
+
+                if (inputBuffer->switches[1]) {
+                    clockPayload.modeChanged = true;
+                } else if (inputBuffer->switches[2]) {
+                    clockPayload.resetClock = true;
+                } else if (inputBuffer->switches[3]) {
+                    clockPayload.increaseHour = true;
+                } else if (inputBuffer->switches[4]) {
+                    clockPayload.increaseMinute = true;
+                }
 
                 clockMode(&clockPayload);
                 break;
@@ -145,7 +95,8 @@ void _main(const int semID) {
         // wait for output to complete
         semop(semID, &p[SEM_OUTPUT_TO_MAIN], 1);
 
-        usleep(1000000);
+        initializeSharedMemory();
+        usleep(180000);
 
         // tell input payload is read
         semop(semID, &v[SEM_MAIN_TO_INPUT], 1);
@@ -213,6 +164,4 @@ void clockMode(const struct _clockPayload* payload) {
 
     outputBuffer->ledBuffer = leds;
     outputBuffer->fndBuffer = fnd;
-
-    // fndPrint(output);
 }

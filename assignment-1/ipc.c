@@ -3,6 +3,9 @@
 extern struct _shmInBuf *inputBuffer;
 extern struct _shmOutBuf *outputBuffer;
 
+static pid_t inputPID;
+static pid_t outputPID;
+
 processType createForks() {
     pid_t pid;
     switch ((pid = fork())) {
@@ -12,6 +15,7 @@ processType createForks() {
         case 0:  // child
             return INPUT;
         default:  // parent
+            inputPID = pid;
             switch ((pid = fork())) {
                 case -1:
                     throwError("Error while creating child process!");
@@ -19,6 +23,7 @@ processType createForks() {
                 case 0:  // child
                     return OUTPUT;
                 default:  // parent
+                    outputPID = pid;
                     return MAIN;
             }
             break;
@@ -80,11 +85,8 @@ void initializeSharedMemory() {
 }
 
 void removeSemaphores(const int semID) {
-    int i;
-    for (i = 0; i < SEM_CNT; i++) {
-        if (semctl(semID, i, IPC_RMID, 0) == -1) {
-            throwError("Error while removing semaphore!");
-        }
+    if (semctl(semID, 0, IPC_RMID, 0) == -1) {
+        throwError("Error while removing semaphore!");
     }
 }
 
@@ -100,4 +102,13 @@ void removeSharedMemories(const int shmInID, const int shmOutID) {
 void removeIpcObjects(const int semID, const int shmInID, const int shmOutID) {
     removeSemaphores(semID);
     removeSharedMemories(shmInID, shmOutID);
+}
+
+void killChildProcesses() {
+    if (kill(inputPID, SIGKILL) == -1) {
+        throwError("Error while killing input process!");
+    }
+    if (kill(outputPID, SIGKILL) == -1) {
+        throwError("Error while killing output process!");
+    }
 }

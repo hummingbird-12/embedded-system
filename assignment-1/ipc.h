@@ -48,5 +48,6 @@ void initializeSharedMemory();
 void removeSemaphores(const int);
 void removeSharedMemories(const int, const int);
 void removeIpcObjects(const int, const int, const int);
+void killChildProcesses();
 
 #endif /* _IPC_H_INCLUDED_ */

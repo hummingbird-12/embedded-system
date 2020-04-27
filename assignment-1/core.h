@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <linux/input.h>
+#include <signal.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
