@@ -72,7 +72,7 @@ void deviceLog(const enum _devices, const enum _logLevel, const char *, ...);
 void writeToDevice(const enum _devices, const void *, const size_t);
 void resetDevices();
 
-void dotPrintArray(const bool[DOT_ROWS][DOT_COLS]);
+void dotPrintArray(const bool **);
 void dotPrintChar(const char);
 void dotReset();
 

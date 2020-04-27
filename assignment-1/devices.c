@@ -99,7 +99,7 @@ void deviceLog(const enum _devices device, const enum _logLevel level,
     const char NAMES[][9] = {"DOT", "FND", "LED", "TEXT_LCD", "KEY", "SWITCH"};
     const char LEVELS[][8] = {"ERROR", "WARNING", "INFO"};
 
-    printf("[%s] %s - ", NAMES[device], LEVELS[level]);
+    printf("[%s] %s\t- ", LEVELS[level], NAMES[device]);
 
     va_list args;
     va_start(args, format);
@@ -131,21 +131,9 @@ void resetDevices() {
     textLcdReset();
 }
 
-void dotPrintArray(const bool data[DOT_ROWS][DOT_COLS]) {
+void dotPrintArray(const bool** data) {
     unsigned char processed[DOT_ROWS] = {'\0'};
     int i, j;
-
-    deviceLog(DOT, INFO, "Requested print array:\n");
-#ifdef _DEBUG_FLAG_
-    for (i = 0; i < DOT_ROWS; i++) {
-        char row[DOT_COLS + 1] = {'\0'};
-        for (j = 0; j < DOT_COLS; j++) {
-            row[j] = data[i][j] ? '1' : '0';
-        }
-        row[DOT_COLS] = '\n';
-        deviceLog(DOT, INFO, row);
-    }
-#endif
 
     for (i = 0; i < DOT_ROWS; i++) {
         for (j = 0; j < DOT_COLS; j++) {
@@ -160,10 +148,9 @@ void dotPrintArray(const bool data[DOT_ROWS][DOT_COLS]) {
     deviceLog(DOT, INFO, "Printed array:\n");
 #ifdef _DEBUG_FLAG_
     for (i = 0; i < DOT_ROWS; i++) {
-        char row[DOT_COLS + 2] = {'\0'};
+        char row[DOT_COLS + 1] = {'\0'};
         for (j = 0; j < DOT_COLS; j++) {
-            row[j] =
-                ((processed[i] & (1 << (DOT_COLS - 1 - j))) != 0) ? '@' : '.';
+            row[j] = data[i][j] ? '1' : '0';
         }
         row[DOT_COLS] = '\n';
         deviceLog(DOT, INFO, row);
@@ -172,8 +159,6 @@ void dotPrintArray(const bool data[DOT_ROWS][DOT_COLS]) {
 }
 
 void dotPrintChar(const char data) {
-    deviceLog(DOT, INFO, "Requested print value: '%c'\n", data);
-
     switch (data) {
         case '1':
             writeToDevice(DOT, DOT_1, sizeof(DOT_1));
@@ -195,15 +180,11 @@ void dotReset() {
     deviceLog(DOT, INFO, "Requested reset\n");
 
     writeToDevice(DOT, DOT_EMPTY, sizeof(DOT_EMPTY));
-
-    deviceLog(DOT, INFO, "Resetted device state\n");
 }
 
 void fndPrint(const int data) {
     unsigned char digits[FND_MAX_DIGITS + 1] = {'\0'};
     int i, digit = 1;
-
-    deviceLog(FND, INFO, "Requested print value: %d\n", data);
 
     if (data < 0 || data > 9999) {
         deviceLog(FND, ERROR, "Value out of bound (0~9999): %d\n", data);
@@ -224,13 +205,9 @@ void fndReset() {
     deviceLog(FND, INFO, "Requested reset\n");
 
     fndPrint(0);
-
-    deviceLog(FND, INFO, "Resetted device state\n");
 }
 
 void ledPrint(const int data) {
-    deviceLog(LED, INFO, "Requested print value: %d\n", data);
-
     if (data < 0 || data > 255) {
         deviceLog(LED, ERROR, "Value out of bound (0~255): %d\n", data);
         return;
@@ -245,15 +222,11 @@ void ledReset() {
     deviceLog(LED, INFO, "Requested reset\n");
 
     ledPrint(0);
-
-    deviceLog(LED, INFO, "Resetted device state\n");
 }
 
 void textLcdPrint(const char* data) {
     char processed[TEXT_LCD_MAX_LEN + 1] = {'\0'};
     int dataLength = strlen(data);
-
-    deviceLog(TEXT_LCD, INFO, "Requested print value: %s\n", data);
 
     if (dataLength > TEXT_LCD_MAX_LEN) {
         deviceLog(TEXT_LCD, WARNING, "String exceeded max length (32): %d\n",
@@ -276,8 +249,6 @@ void textLcdReset() {
     deviceLog(TEXT_LCD, INFO, "Requested reset\n");
 
     textLcdPrint("");
-
-    deviceLog(TEXT_LCD, INFO, "Resetted device state\n");
 }
 
 enum _keys keyRead() {
