@@ -1,9 +1,8 @@
 #include "core.h"
 
 extern struct sembuf p[SEM_CNT], v[SEM_CNT];
-extern struct shmbuf *fromInput, *toOutput;
-
-enum _MODE { CLOCK, COUNTER, TEXT_EDITOR, DRAW_BOARD } mode = CLOCK;
+extern struct shmbuf* fromInput;
+extern struct _shmOutBuf* outputBuffer;
 
 #define TEST_SLEEP 3  // FIXME: REMOVE LATER
 
@@ -70,93 +69,97 @@ void testTEXT_LCD() {  // FIXME: REMOVE LATER
 }
 
 int main() {
-    // int semID = getSemaphore();
+    int semID = getSemaphore();
     // getSharedMemory(SHM_KEY_1, &fromInput);
-    // getSharedMemory(SHM_KEY_2, &toOutput);
+    getSharedMemory(SHM_KEY_3, (void**) &outputBuffer,
+                    sizeof(struct _shmOutBuf));
 
     openDevices();
     resetDevices();
-    sleep(TEST_SLEEP);
+    // sleep(TEST_SLEEP);
 
-    testDot();
+    // testDot();
     // testFND();
     // testLED();
     // testTEXT_LCD();
 
-    // resetDevices();
-
-    resetDevices();
-    closeDevices();
-
-    // switch (createForks()) {
-    //     case MAIN:
-    //         _main(semID);
-    //         break;
-    //     case INPUT:
-    //         input(semID);
-    //         break;
-    //     case OUTPUT:
-    //         output(semID);
-    //         break;
-    // }
+    switch (createForks()) {
+        case MAIN:
+            _main(semID);
+            resetDevices();
+            closeDevices();
+            break;
+        case INPUT:
+            // input(semID);
+            break;
+        case OUTPUT:
+            output(semID);
+            break;
+    }
 
     return 0;
 }
 
 void _main(const int semID) {
-    bool inputLocked = false;
+    static enum _mode mode = CLOCK;
+    struct _clockPayload clockPayload;
     while (true) {
-        if ((fromInput->buf)[0] != '\0') {
-            inputLocked = true;
+        switch (mode) {
+            case CLOCK:
+                clockPayload.resetClock = false;
+                clockPayload.modeChanged = false;
+
+                clockMode(&clockPayload);
+                break;
+            case COUNTER:
+                break;
+            case TEXT_EDITOR:
+                break;
+            case DRAW_BOARD:
+                break;
         }
 
-        int pressedButtons, i;
-        sscanf(fromInput->buf, "%d", &pressedButtons);
-        for (i = 0; i < BUTTONS_CNT; i++) {
-            if ((pressedButtons & (1 << i)) != 0) {
-                switch (1 << i) {
-                    case SW1:
-                        break;
-                    case SW2:
-                        break;
-                    case SW3:
-                        break;
-                    case SW4:
-                        break;
-                    case SW5:
-                        break;
-                    case SW6:
-                        break;
-                    case SW7:
-                        break;
-                    case SW8:
-                        break;
-                    case SW9:
-                        break;
-                    case PROG:
-                        break;
-                    case VOL_UP:
-                        mode = (mode + 1) % MODES_CNT;
-                        break;
-                    case VOL_DOWN:
-                        mode = (mode + MODES_CNT - 1) % MODES_CNT;
-                        break;
-                    case BACK:
-                        break;
-                }
-            }
-        }
+        // tell output payload is ready
+        semop(semID, &v[SEM_MAIN_TO_OUTPUT], 1);
+        // wait for output to be ready
+        semop(semID, &p[SEM_OUTPUT_TO_MAIN], 1);
+        usleep(300000);
 
-        clockMode();
-
-        // tell output it's ready
-        semop(semID, &p[SEM_MAIN_READY], 1);
-
-        if (inputLocked) {
-            memset(fromInput->buf, '\0', SHM_SIZE);
-            semop(semID, &v[SEM_INPUT_READY], 1);
-            inputLocked = false;
-        }
+        // sscanf(fromInput->buf, "%d", &pressedButtons);
+        // for (i = 0; i < BUTTONS_CNT; i++) {
+        //     if ((pressedButtons & (1 << i)) != 0) {
+        //         switch (1 << i) {
+        //             case SW1:
+        //                 break;
+        //             case SW2:
+        //                 break;
+        //             case SW3:
+        //                 break;
+        //             case SW4:
+        //                 break;
+        //             case SW5:
+        //                 break;
+        //             case SW6:
+        //                 break;
+        //             case SW7:
+        //                 break;
+        //             case SW8:
+        //                 break;
+        //             case SW9:
+        //                 break;
+        //             case PROG:
+        //                 break;
+        //             case VOL_UP:
+        //                 mode = (mode + 1) % MODES_CNT;
+        //                 break;
+        //             case VOL_DOWN:
+        //                 mode = (mode + MODES_CNT - 1) % MODES_CNT;
+        //                 break;
+        //             case BACK:
+        //                 break;
+        //         }
+        //     }
+        // }
     }
 }
 
@@ -165,14 +168,62 @@ void throwError(const char* error) {
     exit(1);
 }
 
-void clockMode() {
-    time_t rawtime;
-    struct tm* timeinfo;
-    char output[5] = {'\0'};
+void clockMode(const struct _clockPayload* payload) {
+    outputBuffer->inUse[DOT] = false;
+    outputBuffer->inUse[FND] = true;
+    outputBuffer->inUse[LED] = true;
+    outputBuffer->inUse[TEXT_LCD] = false;
 
+    time_t rawtime;
     time(&rawtime);
-    timeinfo = localtime(&rawtime);
-    sprintf(output, "%02d%02d", timeinfo->tm_hour, timeinfo->tm_min);
+    const struct tm* timeinfo = localtime(&rawtime);
+    const int hour = timeinfo->tm_hour;
+    const int minute = timeinfo->tm_min;
+    const int second = timeinfo->tm_sec;
+    const int time = hour * 100 + minute;
+    int fnd, leds;
+
+    static int editHour, editMinute;
+    static bool inEdit = false;
+
+    if (payload->resetClock && inEdit) {
+        inEdit = false;
+    } else if (payload->modeChanged) {
+        inEdit = !inEdit;
+    }
+
+    if (!inEdit) {
+        leds = LED_1;
+        fnd = time;
+    } else {
+        if (payload->modeChanged) {
+            editHour = hour;
+            editMinute = minute;
+            leds = LED_3 | LED_4;
+        } else if (second % 2 == 0) {
+            leds = LED_3;
+        } else {
+            leds = LED_4;
+        }
+
+        if (payload->increaseMinute) {
+            editMinute++;
+            if (editMinute >= 60) {
+                editHour++;
+            }
+        }
+        if (payload->increaseHour) {
+            editHour++;
+        }
+
+        editHour %= 24;
+        editMinute %= 60;
+
+        fnd = editHour * 100 + editMinute;
+    }
+
+    outputBuffer->ledBuffer = leds;
+    outputBuffer->fndBuffer = fnd;
 
     // fndPrint(output);
 }

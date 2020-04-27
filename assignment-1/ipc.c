@@ -48,18 +48,15 @@ int getSemaphore() {
     return semID;
 }
 
-int getSharedMemory(const key_t key, struct shmbuf **buf) {
-    int shmID = shmget(key, sizeof(struct shmbuf), IPC_CREAT);
+int getSharedMemory(const key_t key, void **buf, const size_t bufferSize) {
+    int shmID = shmget(key, bufferSize, IPC_CREAT);
     if (shmID == -1) {
         throwError("Error while getting shared memory!");
     }
 
-    if ((*buf = (struct shmbuf *) shmat(shmID, 0, 0)) == (void *) -1) {
+    if ((*buf = shmat(shmID, 0, 0)) == (void *) -1) {
         throwError("Error while attaching to shared memory!");
     }
-
-    memset((*buf)->buf, '\0', SHM_SIZE);
-    (*buf)->nread = 0;
 
     return shmID;
 }
