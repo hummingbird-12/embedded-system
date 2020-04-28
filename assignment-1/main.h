@@ -2,9 +2,7 @@
 #define _MAIN_H_INCLUDED_
 
 #define MODES_CNT 4
-
 #define COUNTER_RADIX_CNT 4
-
 #define DRAW_BOARD_DIR_CNT 4
 
 enum _mode { CLOCK, COUNTER, TEXT_EDITOR, DRAW_BOARD };
@@ -53,7 +51,6 @@ void textEditorMode(const textEditorPayload*);
 void drawBoardMode(const drawBoardPayload*);
 
 int activeInputSwitch();
-
 void drawBoardClearCanvas(bool*);
 
 #endif /* _MAIN_H_INCLUDED_ */
