@@ -507,19 +507,16 @@ void drawBoardMode(const drawBoardPayload* payload) {
         cursorX = cursorY = 0;
         count = 0;
         showCursor = true;
-        // memset(canvas, '\0', sizeof(bool) * DOT_ROWS * DOT_COLS);
-        drawBoardClearCanvas((bool*) &canvas);
+        drawBoardClearCanvas(canvas);
     }
 
     if (payload->resetMode) {
         cursorX = cursorY = 0;
         count = 0;
         showCursor = true;
-        // memset(canvas, false, sizeof(canvas));
-        drawBoardClearCanvas((bool*) &canvas);
+        drawBoardClearCanvas(canvas);
     } else if (payload->clearCanvas) {
-        // memset(canvas, false, sizeof(canvas));
-        drawBoardClearCanvas((bool*) &canvas);
+        drawBoardClearCanvas(canvas);
         count++;
     } else if (payload->toggleCursor) {
         showCursor = !showCursor;
@@ -539,10 +536,12 @@ void drawBoardMode(const drawBoardPayload* payload) {
         for (dir = 0; dir < DRAW_BOARD_DIR_CNT; dir++) {
             newCX = cursorX + directionsX[dir];
             newCY = cursorY + directionsY[dir];
-            if (payload->moveCursor[dir] && newCX >= 0 && newCX < DOT_ROWS &&
-                newCY >= 0 && newCY < DOT_COLS) {
-                cursorX = newCX;
-                cursorY = newCY;
+            if (payload->moveCursor[dir]) {
+                if (newCX >= 0 && newCX < DOT_ROWS && newCY >= 0 &&
+                    newCY < DOT_COLS) {
+                    cursorX = newCX;
+                    cursorY = newCY;
+                }
                 count++;
                 break;
             }
@@ -552,7 +551,14 @@ void drawBoardMode(const drawBoardPayload* payload) {
     // Save to shared memory
     outputBuffer->fndBuffer = count;
     outputBuffer->dotCharBuffer = '\0';
-    memcpy(outputBuffer->dotArrayBuffer, canvas, sizeof(canvas));
+
+    // Copy canvas into shared memory
+    for (i = 0; i < DOT_ROWS; i++) {
+        for (j = 0; j < DOT_COLS; j++) {
+            outputBuffer->dotArrayBuffer[i * DOT_ROWS + j] =
+                canvas[i * DOT_ROWS + j];
+        }
+    }
 
     if (showCursor) {
         // Obtain device's local time
@@ -581,7 +587,7 @@ void drawBoardClearCanvas(bool* canvas) {
     int i, j;
     for (i = 0; i < DOT_ROWS; i++) {
         for (j = 0; j < DOT_COLS; j++) {
-            (*(bool**) canvas)[i * DOT_ROWS + j] = false;
+            canvas[i * DOT_ROWS + j] = false;
         }
     }
 }
