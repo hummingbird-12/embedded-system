@@ -108,7 +108,9 @@ void killChildProcesses() {
     if (kill(inputPID, SIGKILL) == -1) {
         throwError("Error while killing input process!");
     }
+    waitpid(inputPID, NULL, 0);
     if (kill(outputPID, SIGKILL) == -1) {
         throwError("Error while killing output process!");
     }
+    waitpid(outputPID, NULL, 0);
 }

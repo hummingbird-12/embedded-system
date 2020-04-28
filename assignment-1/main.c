@@ -198,7 +198,7 @@ void _main(const int semID) {
         semop(semID, &p[SEM_OUTPUT_TO_MAIN], 1);
 
         initializeSharedMemory();
-        usleep(180000);
+        usleep(140000);
 
         // tell input payload is read
         semop(semID, &v[SEM_MAIN_TO_INPUT], 1);

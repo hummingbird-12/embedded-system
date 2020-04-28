@@ -4,23 +4,34 @@ extern struct sembuf p[SEM_CNT], v[SEM_CNT];
 extern struct _shmInBuf* inputBuffer;
 
 void input(const int semID) {
-    int switches;
-    enum _keys key;
+    int switches, prevSwitches = -1;
+    enum _keys key, prevKey = -1;
     enum _switches sw;
 
     while (true) {
         inputBuffer->hasInput = false;
 
         if ((key = keyRead()) != 0) {
-            inputBuffer->hasInput = true;
-            inputBuffer->key = key;
+            if (key != prevKey) {
+                inputBuffer->hasInput = true;
+                inputBuffer->key = key;
+            } else {
+                inputBuffer->key = prevKey = 0;
+            }
         }
 
         if ((switches = switchRead()) != 0) {
-            inputBuffer->hasInput = true;
-            for (sw = SWITCH_CNT; sw >= 1; sw--) {
-                inputBuffer->switches[sw] = switches % 10;
-                switches /= 10;
+            if (switches != prevSwitches) {
+                inputBuffer->hasInput = true;
+                for (sw = SWITCH_CNT; sw >= 1; sw--) {
+                    inputBuffer->switches[sw] = switches % 10;
+                    switches /= 10;
+                }
+            } else {
+                for (sw = 1; sw <= SWITCH_CNT; sw++) {
+                    inputBuffer->switches[sw] = false;
+                }
+                prevSwitches = 0;
             }
         }
 
