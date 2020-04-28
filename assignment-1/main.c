@@ -136,7 +136,7 @@ void _main(const int semID) {
                     textEditorPl.putSpace = true;
                 }
                 memcpy(textEditorPl.keypad, inputBuffer->switches,
-                       sizeof(SWITCH_CNT + 1));
+                       sizeof(textEditorPl.keypad));
 
                 textEditorMode(&textEditorPl);
                 break;
@@ -421,10 +421,12 @@ void textEditorMode(const textEditorPayload* payload) {
 
     if (character != '\0') {
         if (index >= TEXT_LCD_MAX_LEN) {
-            char* temp = (char*) calloc(TEXT_LCD_MAX_LEN + 1, sizeof(char));
-            memcpy(temp, text + 1, TEXT_LCD_MAX_LEN - 1);
-            memcpy(text, temp, TEXT_LCD_MAX_LEN - 1);
-            free(temp);
+            if (moveIndex) {
+                char* temp = (char*) calloc(TEXT_LCD_MAX_LEN + 1, sizeof(char));
+                memcpy(temp, text + 1, TEXT_LCD_MAX_LEN - 1);
+                memcpy(text, temp, TEXT_LCD_MAX_LEN - 1);
+                free(temp);
+            }
             text[TEXT_LCD_MAX_LEN - 1] = character;
         } else {
             if (moveIndex) {

@@ -1,7 +1,7 @@
 #ifndef _DEVICES_H_INCLUDED_
 #define _DEVICES_H_INCLUDED_
 
-// #define _DEBUG_FLAG_
+#define _DEBUG_FLAG_
 
 #define DEVICES_CNT 6
 #define INPUT_DEVICES_CNT 2
