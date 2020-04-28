@@ -131,13 +131,13 @@ void resetDevices() {
     textLcdReset();
 }
 
-void dotPrintArray(const bool** data) {
+void dotPrintArray(const bool* data) {
     unsigned char processed[DOT_ROWS] = {'\0'};
     int i, j;
 
     for (i = 0; i < DOT_ROWS; i++) {
         for (j = 0; j < DOT_COLS; j++) {
-            if (data[i][j]) {
+            if (data[i * DOT_ROWS + j]) {
                 processed[i] += 1 << (DOT_COLS - 1 - j);
             }
         }
@@ -145,12 +145,12 @@ void dotPrintArray(const bool** data) {
 
     writeToDevice(DOT, processed, DOT_ROWS);
 
-    deviceLog(DOT, INFO, "Printed array:\n");
 #ifdef _DEBUG_FLAG_
+    deviceLog(DOT, INFO, "Printed array:\n");
     for (i = 0; i < DOT_ROWS; i++) {
-        char row[DOT_COLS + 1] = {'\0'};
+        char row[DOT_COLS + 2] = {'\0'};
         for (j = 0; j < DOT_COLS; j++) {
-            row[j] = data[i][j] ? '1' : '0';
+            row[j] = data[i * DOT_ROWS + j] ? '1' : '0';
         }
         row[DOT_COLS] = '\n';
         deviceLog(DOT, INFO, row);

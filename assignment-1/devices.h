@@ -1,7 +1,7 @@
 #ifndef _DEVICES_H_INCLUDED_
 #define _DEVICES_H_INCLUDED_
 
-#define _DEBUG_FLAG_
+// #define _DEBUG_FLAG_
 
 #define DEVICES_CNT 6
 #define INPUT_DEVICES_CNT 2
@@ -72,7 +72,7 @@ void deviceLog(const enum _devices, const enum _logLevel, const char *, ...);
 void writeToDevice(const enum _devices, const void *, const size_t);
 void resetDevices();
 
-void dotPrintArray(const bool **);
+void dotPrintArray(const bool *);
 void dotPrintChar(const char);
 void dotReset();
 

@@ -5,8 +5,11 @@
 
 #define COUNTER_RADIX_CNT 4
 
+#define DRAW_BOARD_DIR_CNT 4
+
 enum _mode { CLOCK, COUNTER, TEXT_EDITOR, DRAW_BOARD };
 enum _counterRadix { DEC, OCT, QUA, BIN };
+enum _drawBoardDirections { UP, RIGHT, DOWN, LEFT };
 
 typedef struct _clockPayload {
     bool firstPayload;
@@ -33,7 +36,13 @@ typedef struct _textEditorPayload {
 } textEditorPayload;
 
 typedef struct _drawBoardPayload {
+    bool moveCursor[DRAW_BOARD_DIR_CNT];
     bool firstPayload;
+    bool resetMode;
+    bool invertDrawing;
+    bool clearCanvas;
+    bool toggleCursor;
+    bool drawDot;
 } drawBoardPayload;
 
 void _main(const int);
@@ -42,5 +51,9 @@ void clockMode(const clockPayload*);
 void counterMode(const counterPayload*);
 void textEditorMode(const textEditorPayload*);
 void drawBoardMode(const drawBoardPayload*);
+
+int activeInputSwitch();
+
+void drawBoardClearCanvas(bool*);
 
 #endif /* _MAIN_H_INCLUDED_ */

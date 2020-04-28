@@ -15,7 +15,7 @@ void output(const int semID) {
 
         if (outputBuffer->inUse[DOT]) {
             outputBuffer->dotCharBuffer == '\0'
-                ? dotPrintArray((const bool**) outputBuffer->dotArrayBuffer)
+                ? dotPrintArray(outputBuffer->dotArrayBuffer)
                 : dotPrintChar(outputBuffer->dotCharBuffer);
         } else if (currentInUse[DOT]) {
             dotReset();

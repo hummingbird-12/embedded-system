@@ -141,12 +141,54 @@ void _main(const int semID) {
                 textEditorMode(&textEditorPl);
                 break;
             case DRAW_BOARD:
+                drawBoardPl = (drawBoardPayload){.firstPayload = false,
+                                                 .resetMode = false,
+                                                 .invertDrawing = false,
+                                                 .clearCanvas = false,
+                                                 .toggleCursor = false,
+                                                 .drawDot = false};
+                memset(drawBoardPl.moveCursor, false,
+                       sizeof(drawBoardPl.moveCursor));
 
                 if (modeChanged) {
                     drawBoardPl.firstPayload = true;
                 }
 
+                switch (activeInputSwitch()) {
+                    case 1:
+                        drawBoardPl.resetMode = true;
+                        break;
+                    case 2:
+                        drawBoardPl.moveCursor[UP] = true;
+                        break;
+                    case 3:
+                        drawBoardPl.toggleCursor = true;
+                        break;
+                    case 4:
+                        drawBoardPl.moveCursor[LEFT] = true;
+                        break;
+                    case 5:
+                        drawBoardPl.drawDot = true;
+                        break;
+                    case 6:
+                        drawBoardPl.moveCursor[RIGHT] = true;
+                        break;
+                    case 7:
+                        drawBoardPl.clearCanvas = true;
+                        break;
+                    case 8:
+                        drawBoardPl.moveCursor[DOWN] = true;
+                        break;
+                    case 9:
+                        drawBoardPl.invertDrawing = true;
+                        break;
+                    default:
+                        break;
+                }
+
                 drawBoardMode(&drawBoardPl);
+                break;
+            default:
                 break;
         }
 
@@ -448,14 +490,98 @@ void drawBoardMode(const drawBoardPayload* payload) {
     outputBuffer->inUse[FND] = true;
     outputBuffer->inUse[LED] = false;
     outputBuffer->inUse[TEXT_LCD] = false;
-    // int fnd;
-    // char dot[DOT_ROWS][DOT_COLS];
+
+    const short directionsX[] = {-1, 0, 1, 0};
+    const short directionsY[] = {0, 1, 0, -1};
+
+    int newCX, newCY, i, j;
+    enum _drawBoardDirections dir;
+
+    static int cursorX = 0, cursorY = 0;
+    static int count = 0;
+    static bool showCursor = true;
+    static bool canvas[DOT_ROWS * DOT_COLS] = {false};
 
     // Just changed into Draw Board mode
     if (payload->firstPayload) {
+        cursorX = cursorY = 0;
+        count = 0;
+        showCursor = true;
+        // memset(canvas, '\0', sizeof(bool) * DOT_ROWS * DOT_COLS);
+        drawBoardClearCanvas((bool*) &canvas);
+    }
+
+    if (payload->resetMode) {
+        cursorX = cursorY = 0;
+        count = 0;
+        showCursor = true;
+        // memset(canvas, false, sizeof(canvas));
+        drawBoardClearCanvas((bool*) &canvas);
+    } else if (payload->clearCanvas) {
+        // memset(canvas, false, sizeof(canvas));
+        drawBoardClearCanvas((bool*) &canvas);
+        count++;
+    } else if (payload->toggleCursor) {
+        showCursor = !showCursor;
+        count++;
+    } else if (payload->drawDot) {
+        canvas[cursorX * DOT_ROWS + cursorY] =
+            !canvas[cursorX * DOT_ROWS + cursorY];
+        count++;
+    } else if (payload->invertDrawing) {
+        for (i = 0; i < DOT_ROWS; i++) {
+            for (j = 0; j < DOT_COLS; j++) {
+                canvas[i * DOT_ROWS + j] = !canvas[i * DOT_ROWS + j];
+            }
+        }
+        count++;
+    } else {
+        for (dir = 0; dir < DRAW_BOARD_DIR_CNT; dir++) {
+            newCX = cursorX + directionsX[dir];
+            newCY = cursorY + directionsY[dir];
+            if (payload->moveCursor[dir] && newCX >= 0 && newCX < DOT_ROWS &&
+                newCY >= 0 && newCY < DOT_COLS) {
+                cursorX = newCX;
+                cursorY = newCY;
+                count++;
+                break;
+            }
+        }
     }
 
     // Save to shared memory
-    // outputBuffer->fndBuffer = fnd;
-    // memcpy(outputBuffer->dotArrayBuffer, dot, sizeof(dot));
+    outputBuffer->fndBuffer = count;
+    outputBuffer->dotCharBuffer = '\0';
+    memcpy(outputBuffer->dotArrayBuffer, canvas, sizeof(canvas));
+
+    if (showCursor) {
+        // Obtain device's local time
+        time_t rawtime;
+        time(&rawtime);
+        const struct tm* timeinfo = localtime(&rawtime);
+        const int deviceSec = timeinfo->tm_sec;
+
+        // Blink cursor
+        outputBuffer->dotArrayBuffer[cursorX * DOT_ROWS + cursorY] =
+            (deviceSec % 2) == 0;
+    }
+}
+
+int activeInputSwitch() {
+    int i;
+    for (i = 1; i <= SWITCH_CNT; i++) {
+        if (inputBuffer->switches[i]) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void drawBoardClearCanvas(bool* canvas) {
+    int i, j;
+    for (i = 0; i < DOT_ROWS; i++) {
+        for (j = 0; j < DOT_COLS; j++) {
+            (*(bool**) canvas)[i * DOT_ROWS + j] = false;
+        }
+    }
 }

@@ -28,7 +28,7 @@ struct _shmInBuf {
 };
 
 struct _shmOutBuf {
-    bool dotArrayBuffer[DOT_ROWS][DOT_COLS];
+    bool dotArrayBuffer[DOT_ROWS * DOT_COLS];
     char textLcdBuffer[TEXT_LCD_MAX_LEN];
     int fndBuffer;
     int ledBuffer;
