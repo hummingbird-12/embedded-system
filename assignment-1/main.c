@@ -548,6 +548,8 @@ bool textEditorMode(const textEditorPayload* payload) {
         }
     }
 
+    count %= 10000;
+
     // Save to shared memory
     outputBuffer->fndBuffer = count;
     outputBuffer->dotCharBuffer = alpha ? 'A' : '1';
@@ -631,6 +633,8 @@ bool drawBoardMode(const drawBoardPayload* payload) {
             }
         }
     }
+
+    count %= 10000;
 
     // Save to shared memory
     outputBuffer->fndBuffer = count;
