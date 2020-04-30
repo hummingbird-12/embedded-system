@@ -1,12 +1,14 @@
 #ifndef _DEVICES_H_INCLUDED_
 #define _DEVICES_H_INCLUDED_
 
+// Enable this Flag to show device logs
 // #define _DEBUG_FLAG_
 
 #define DEVICES_CNT 6
-#define INPUT_DEVICES_CNT 2
-#define OUTPUT_DEVICES_CNT 4
+#define INPUT_DEVICES_CNT 2   // KEY, SWITCH
+#define OUTPUT_DEVICES_CNT 4  // DOT, FND, LED, TEXT_LCD
 
+// Device driver files
 #define DOT_DEVICE "/dev/fpga_dot"
 #define FND_DEVICE "/dev/fpga_fnd"
 #define LED_DEVICE "/dev/mem"
@@ -14,6 +16,7 @@
 #define KEY_DEVICE "/dev/input/event0"
 #define SWITCH_DEVICE "/dev/fpga_push_switch"
 
+// Constants for Dot Matrix device
 #define DOT_ROWS 10
 #define DOT_COLS 7
 #define DOT_0000 0x0  // ....
@@ -33,8 +36,10 @@
 #define DOT_1110 0xE  // @@@.
 #define DOT_1111 0xF  // @@@@
 
+// Constant for FND device
 #define FND_MAX_DIGITS 4
 
+// Constants for LED device
 #define FPGA_BASE_ADDR 0x08000000  // fpga_base address
 #define FPGA_MAP_LENGTH 4096
 #define LED_ADDR_OFFSET 0x16
@@ -47,11 +52,14 @@
 #define LED_7 1 << 1
 #define LED_8 1 << 0
 
+// Constant for Text LCD device
 #define TEXT_LCD_MAX_LEN 32
 
+// Constants for Key device
 #define KEY_MAX_CNT 64
 #define KEYS_CNT 4
 
+// Constant for Switch device
 #define SWITCH_CNT 9
 
 #define BUTTON_PRESSED 1

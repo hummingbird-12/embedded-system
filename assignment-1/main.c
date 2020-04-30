@@ -4,6 +4,7 @@ extern struct sembuf p[SEM_CNT], v[SEM_CNT];
 extern struct _shmInBuf* inputBuffer;
 extern struct _shmOutBuf* outputBuffer;
 
+// Keypad for Text Editor mode
 const char TEXT_EDITOR_ALPHA[][3] = {
     "",                   // -
     ".QZ", "ABC", "DEF",  // SW(1)~SW(3)
@@ -39,6 +40,7 @@ int main() {
     return 0;
 }
 
+// The `Main` process's main loop function
 void _main(const int semID) {
     static enum _mode mode = CLOCK;
     bool modeChanged, hasChange, quitFlag = false;
@@ -50,25 +52,27 @@ void _main(const int semID) {
     drawBoardPayload drawBoardPl;
 
     while (true) {
-        // wait for input's payload
+        // [SEMAPHORE] - wait for `Input` process
         semop(semID, &p[SEM_INPUT_TO_MAIN], 1);
 
         modeChanged = false;
         hasChange = false;
 
+        // Check for keys (VOL-, VOL+, BACK)
         switch (inputBuffer->key) {
             case KEY_VOLUMEDOWN:
+                // Go to previous mode
                 mode = (mode + MODES_CNT - 1) % MODES_CNT;
                 modeChanged = true;
                 break;
             case KEY_VOLUMEUP:
+                // Go to next mode
                 mode = (mode + 1) % MODES_CNT;
                 modeChanged = true;
                 break;
             case KEY_BACK:
+                // Exit program
                 quitFlag = true;
-                break;
-            case KEY_POWER:
                 break;
             default:
                 break;
@@ -79,12 +83,15 @@ void _main(const int semID) {
 
         switch (mode) {
             case CLOCK:
+                // Initialize payload
                 clockPl = (clockPayload){false, false, false, false, false};
 
+                // Just changed into Clock mode
                 if (modeChanged) {
                     clockPl.firstPayload = true;
                 }
 
+                // Check for associated actions
                 if (inputBuffer->switches[1]) {
                     clockPl.toggleEdit = true;
                 } else if (inputBuffer->switches[2]) {
@@ -98,12 +105,15 @@ void _main(const int semID) {
                 hasChange = clockMode(&clockPl);
                 break;
             case COUNTER:
+                // Initialize payload
                 counterPl = (counterPayload){false, false, false, false, false};
 
+                // Just changed into Counter mode
                 if (modeChanged) {
                     counterPl.firstPayload = true;
                 }
 
+                // Check for associated actions
                 if (inputBuffer->switches[1]) {
                     counterPl.changeRadix = true;
                 } else if (inputBuffer->switches[2]) {
@@ -117,6 +127,7 @@ void _main(const int semID) {
                 hasChange = counterMode(&counterPl);
                 break;
             case TEXT_EDITOR:
+                // Initialize payload
                 textEditorPl = (textEditorPayload){.firstPayload = false,
                                                    .clearText = false,
                                                    .triggerAlNum = false,
@@ -125,10 +136,12 @@ void _main(const int semID) {
                     textEditorPl.keypad[i] = false;
                 }
 
+                // Just changed into Text Editor mode
                 if (modeChanged) {
                     textEditorPl.firstPayload = true;
                 }
 
+                // Check for associated actions
                 if (inputBuffer->switches[2] && inputBuffer->switches[3]) {
                     textEditorPl.clearText = true;
                 } else if (inputBuffer->switches[5] &&
@@ -145,6 +158,7 @@ void _main(const int semID) {
                 hasChange = textEditorMode(&textEditorPl);
                 break;
             case DRAW_BOARD:
+                // Initialize payload
                 drawBoardPl = (drawBoardPayload){.firstPayload = false,
                                                  .resetMode = false,
                                                  .invertDrawing = false,
@@ -155,10 +169,12 @@ void _main(const int semID) {
                     drawBoardPl.moveCursor[i] = false;
                 }
 
+                // Just chaned into Draw Board mode
                 if (modeChanged) {
                     drawBoardPl.firstPayload = true;
                 }
 
+                // Check for associated actions
                 switch (activeInputSwitch()) {
                     case 1:
                         drawBoardPl.resetMode = true;
@@ -197,28 +213,30 @@ void _main(const int semID) {
                 break;
         }
 
+        // If there was no state change, skip `Output` process loop
         if (hasChange) {
-            // tell output payload is ready
+            // [SEMAPHORE] - let `Output` process proceed
             semop(semID, &v[SEM_MAIN_TO_OUTPUT], 1);
-            // wait for output to complete
+            // [SEMAPHORE] - wait for `Output` process
             semop(semID, &p[SEM_OUTPUT_TO_MAIN], 1);
         }
 
         initializeSharedMemory();
 
-        // tell input payload is read
+        // [SEMAPHORE] - let `Input` process proceed
         semop(semID, &v[SEM_MAIN_TO_INPUT], 1);
     }
 
     for (i = 0; i < OUTPUT_DEVICES_CNT; i++) {
         outputBuffer->inUse[i] = false;
     }
-    // tell output payload is ready
+    // [SEMAPHORE] - let `Output` process proceed
     semop(semID, &v[SEM_MAIN_TO_OUTPUT], 1);
-    // wait for output to complete
+    // [SEMAPHORE] - wait for `Output` process
     semop(semID, &p[SEM_OUTPUT_TO_MAIN], 1);
 }
 
+// Catch errors and exit
 void throwError(const char* error) {
     perror(error);
     killChildProcesses();
@@ -241,6 +259,7 @@ bool clockMode(const clockPayload* payload) {
     const int deviceSec = timeinfo->tm_sec;
     const int deviceMinutes = timeinfo->tm_hour * 60 + timeinfo->tm_min;
 
+    // Clock mode's state
     static int minutesBeforeEdit = 0;
     static int offset = 0, tmpOffset = 0;
     static bool inEdit = false;
@@ -318,6 +337,7 @@ bool counterMode(const counterPayload* payload) {
     char digits[5] = {'\0'};
     bool hasChange = false;
 
+    // Counter mode's state
     static int value = 0;
     static enum _counterRadix radix = DEC;
 
@@ -408,6 +428,7 @@ bool counterMode(const counterPayload* payload) {
             break;
     }
 
+    // Convert ASCII digits into integer
     fnd = atoi(digits);
 
     // Save to shared memory
@@ -428,6 +449,7 @@ bool textEditorMode(const textEditorPayload* payload) {
     char character;
     bool moveIndex, hasChange = false;
 
+    // Text Editor mode's state
     static char text[TEXT_LCD_MAX_LEN] = {'\0'};
     static bool alpha = true;
     static int count = 0;
@@ -467,7 +489,9 @@ bool textEditorMode(const textEditorPayload* payload) {
         prevKey = -1;
         prevKeyCount = 0;
         hasChange = true;
-    } else if (alpha) {
+    }
+    // None of the above actions and in alphabet mode
+    else if (alpha) {
         for (i = 1; i <= SWITCH_CNT; i++) {
             if (payload->keypad[i]) {
                 if (i == prevKey) {
@@ -483,7 +507,9 @@ bool textEditorMode(const textEditorPayload* payload) {
                 break;
             }
         }
-    } else {
+    }
+    // None of the above actions and in numeric mode
+    else {
         for (i = 1; i <= SWITCH_CNT; i++) {
             if (payload->keypad[i]) {
                 character = '0' + i;
@@ -500,8 +526,11 @@ bool textEditorMode(const textEditorPayload* payload) {
         return false;
     }
 
+    // If a character has to be printed
     if (character != '\0') {
+        // If the Text LCD is full
         if (index >= TEXT_LCD_MAX_LEN) {
+            // If shifting is needed
             if (moveIndex) {
                 char* temp = (char*) calloc(TEXT_LCD_MAX_LEN + 1, sizeof(char));
                 memcpy(temp, text + 1, TEXT_LCD_MAX_LEN - 1);
@@ -509,7 +538,9 @@ bool textEditorMode(const textEditorPayload* payload) {
                 free(temp);
             }
             text[TEXT_LCD_MAX_LEN - 1] = character;
-        } else {
+        }
+        // Append character at the end of the string
+        else {
             if (moveIndex) {
                 index++;
             }
@@ -539,6 +570,7 @@ bool drawBoardMode(const drawBoardPayload* payload) {
     enum _drawBoardDirections dir;
     bool hasChange = false;
 
+    // Draw Board mode's state
     static int cursorX = 0, cursorY = 0;
     static int count = 0;
     static bool showCursor = true;
@@ -580,11 +612,14 @@ bool drawBoardMode(const drawBoardPayload* payload) {
         }
         count++;
         hasChange = true;
-    } else {
+    }
+    // Check for any input for directional keys
+    else {
         for (dir = 0; dir < DRAW_BOARD_DIR_CNT; dir++) {
             newCX = cursorX + directionsX[dir];
             newCY = cursorY + directionsY[dir];
             if (payload->moveCursor[dir]) {
+                // Only apply new cursor position if within boundaries
                 if (newCX >= 0 && newCX < DOT_ROWS && newCY >= 0 &&
                     newCY < DOT_COLS) {
                     cursorX = newCX;
@@ -625,6 +660,7 @@ bool drawBoardMode(const drawBoardPayload* payload) {
     return hasChange;
 }
 
+// Check for any pressed switch from the shared memory
 int activeInputSwitch() {
     int i;
     for (i = 1; i <= SWITCH_CNT; i++) {
@@ -635,6 +671,7 @@ int activeInputSwitch() {
     return -1;
 }
 
+// Clear out the canvas of the Draw Board mode
 void drawBoardClearCanvas(bool* canvas) {
     int i, j;
     for (i = 0; i < DOT_ROWS; i++) {

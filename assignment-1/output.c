@@ -11,40 +11,53 @@ void output(const int semID) {
     resetDevices();
 
     while (true) {
-        // wait for main's payload
+        // [SEMAPHORE] - wait for `Main` process
         semop(semID, &p[SEM_MAIN_TO_OUTPUT], 1);
 
+        // Check shared memory for Dot Matrix device
         if (outputBuffer->inUse[DOT]) {
             outputBuffer->dotCharBuffer == '\0'
                 ? dotPrintArray(outputBuffer->dotArrayBuffer)
                 : dotPrintChar(outputBuffer->dotCharBuffer);
-        } else if (currentInUse[DOT]) {
+        }
+        // Only reset if was in use previously
+        else if (currentInUse[DOT]) {
             dotReset();
         }
 
+        // Check shared memory for FND device
         if (outputBuffer->inUse[FND]) {
             fndPrint(outputBuffer->fndBuffer);
-        } else if (currentInUse[FND]) {
+        }
+        // Only reset if was in use previously
+        else if (currentInUse[FND]) {
             fndReset();
         }
 
+        // Check shared memory for LED device
         if (outputBuffer->inUse[LED]) {
             ledPrint(outputBuffer->ledBuffer);
-        } else if (currentInUse[LED]) {
+        }
+        // Only reset if was in use previously
+        else if (currentInUse[LED]) {
             ledReset();
         }
 
+        // Check shared memory for Text LCD device
         if (outputBuffer->inUse[TEXT_LCD]) {
             textLcdPrint(outputBuffer->textLcdBuffer);
-        } else if (currentInUse[TEXT_LCD]) {
+        }
+        // Only reset if was in use previously
+        else if (currentInUse[TEXT_LCD]) {
             textLcdReset();
         }
 
+        // Save which devices are used in this loop
         for (i = 0; i < OUTPUT_DEVICES_CNT; i++) {
             currentInUse[i] = outputBuffer->inUse[i];
         }
 
-        // tell main output is complete
+        // [SEMAPHORE] - let `Main` process proceed
         semop(semID, &v[SEM_OUTPUT_TO_MAIN], 1);
     }
 }

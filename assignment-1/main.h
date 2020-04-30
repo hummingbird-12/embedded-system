@@ -9,6 +9,7 @@ enum _mode { CLOCK, COUNTER, TEXT_EDITOR, DRAW_BOARD };
 enum _counterRadix { DEC, OCT, QUA, BIN };
 enum _drawBoardDirections { UP, RIGHT, DOWN, LEFT };
 
+// Clock mode payload
 typedef struct _clockPayload {
     bool firstPayload;
     bool toggleEdit;
@@ -17,6 +18,7 @@ typedef struct _clockPayload {
     bool resetClock;
 } clockPayload;
 
+// Counter mode payload
 typedef struct _counterPayload {
     bool firstPayload;
     bool changeRadix;
@@ -25,6 +27,7 @@ typedef struct _counterPayload {
     bool increase2;
 } counterPayload;
 
+// Text Editor mode payload
 typedef struct _textEditorPayload {
     bool keypad[SWITCH_CNT + 1];
     bool firstPayload;
@@ -33,6 +36,7 @@ typedef struct _textEditorPayload {
     bool putSpace;
 } textEditorPayload;
 
+// Draw Board mode payload
 typedef struct _drawBoardPayload {
     bool moveCursor[DRAW_BOARD_DIR_CNT];
     bool firstPayload;
