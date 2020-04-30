@@ -1,9 +1,13 @@
 default: main.o ipc.o input.o output.o devices.o
-	arm-none-linux-gnueabi-gcc -static -Wall -lm -o hw1.out main.o ipc.o input.o output.o devices.o
-	@echo ">>> To execute, type ./hw1.out"
+	arm-none-linux-gnueabi-gcc -static -Wall -lm -o hw1_20161577.out main.o ipc.o input.o output.o devices.o
+	@echo ">>> BUILD COMPLETE (hw1_20161577.out)"
+	@echo ">>> Type 'adb push ./hw1_20161577.out /data/local/tmp' to push to ARM board."
+	@echo ">>> Or do 'make push' to build and push."
 
 push: default
-	adb push ./hw1.out /data/local/tmp
+	@echo ">>> Pushing build file to ARM board..."
+	adb push ./hw1_20161577.out /data/local/tmp
+	@echo ">>> PUSH COMPLETE"
 
 main.o: core.h main.h main.c
 	arm-none-linux-gnueabi-gcc -static -Wall -lm -c -o main.o main.c
