@@ -24,7 +24,6 @@ union semun {
 struct _shmInBuf {
     bool switches[SWITCH_CNT + 1];
     enum _keys key;
-    bool hasInput;
 };
 
 struct _shmOutBuf {

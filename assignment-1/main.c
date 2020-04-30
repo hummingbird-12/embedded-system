@@ -56,27 +56,25 @@ void _main(const int semID) {
         modeChanged = false;
         hasChange = false;
 
-        if (inputBuffer->hasInput) {
-            switch (inputBuffer->key) {
-                case KEY_VOLUMEDOWN:
-                    mode = (mode + MODES_CNT - 1) % MODES_CNT;
-                    modeChanged = true;
-                    break;
-                case KEY_VOLUMEUP:
-                    mode = (mode + 1) % MODES_CNT;
-                    modeChanged = true;
-                    break;
-                case KEY_BACK:
-                    quitFlag = true;
-                    break;
-                case KEY_POWER:
-                    break;
-                default:
-                    break;
-            }
-            if (quitFlag) {
+        switch (inputBuffer->key) {
+            case KEY_VOLUMEDOWN:
+                mode = (mode + MODES_CNT - 1) % MODES_CNT;
+                modeChanged = true;
                 break;
-            }
+            case KEY_VOLUMEUP:
+                mode = (mode + 1) % MODES_CNT;
+                modeChanged = true;
+                break;
+            case KEY_BACK:
+                quitFlag = true;
+                break;
+            case KEY_POWER:
+                break;
+            default:
+                break;
+        }
+        if (quitFlag) {
+            break;
         }
 
         switch (mode) {
@@ -207,7 +205,7 @@ void _main(const int semID) {
         }
 
         initializeSharedMemory();
-        usleep(140000);
+        // usleep(130000);
 
         // tell input payload is read
         semop(semID, &v[SEM_MAIN_TO_INPUT], 1);
@@ -244,6 +242,7 @@ bool clockMode(const clockPayload* payload) {
     const int deviceSec = timeinfo->tm_sec;
     const int deviceMinutes = timeinfo->tm_hour * 60 + timeinfo->tm_min;
 
+    static int minutesBeforeEdit = 0;
     static int offset = 0, tmpOffset = 0;
     static bool inEdit = false;
 
@@ -258,6 +257,7 @@ bool clockMode(const clockPayload* payload) {
         // Trigger to edit option
         if (payload->toggleEdit) {
             inEdit = true;
+            minutesBeforeEdit = deviceMinutes;
 
             leds = LED_3 | LED_4;
         } else {
@@ -295,8 +295,10 @@ bool clockMode(const clockPayload* payload) {
     }
 
     // Calculate time with offset
-    const int savedHour = ((deviceMinutes + tmpOffset) / 60) % 24;
-    const int savedMin = (deviceMinutes + tmpOffset) % 60;
+    const int offsetMinutes =
+        (inEdit ? minutesBeforeEdit : deviceMinutes) + tmpOffset;
+    const int savedHour = (offsetMinutes / 60) % 24;
+    const int savedMin = offsetMinutes % 60;
     fnd = savedHour * 100 + savedMin;
 
     // Save to shared memory

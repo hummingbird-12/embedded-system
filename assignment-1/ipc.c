@@ -70,7 +70,6 @@ int getSharedMemory(const key_t key, void **buf, const size_t bufferSize) {
 }
 
 void initializeSharedMemory() {
-    inputBuffer->hasInput = false;
     inputBuffer->key = -1;
     memset(inputBuffer->switches, false, sizeof(inputBuffer->switches));
 
