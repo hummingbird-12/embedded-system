@@ -11,16 +11,14 @@ void input(const int semID) {
     while (true) {
         if ((key = keyRead()) != 0) {
             inputBuffer->key = key;
-        }
-
-        if ((switches = switchRead()) != 0) {
+        } else if ((switches = switchRead()) != 0) {
             for (sw = SWITCH_CNT; sw >= 1; sw--) {
                 inputBuffer->switches[sw] = switches % 10;
                 switches /= 10;
             }
         }
 
-        usleep(140000);
+        usleep(130000);
 
         semop(semID, &v[SEM_INPUT_TO_MAIN], 1);
         semop(semID, &p[SEM_MAIN_TO_INPUT], 1);

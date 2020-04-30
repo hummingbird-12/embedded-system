@@ -205,7 +205,6 @@ void _main(const int semID) {
         }
 
         initializeSharedMemory();
-        // usleep(130000);
 
         // tell input payload is read
         semop(semID, &v[SEM_MAIN_TO_INPUT], 1);
