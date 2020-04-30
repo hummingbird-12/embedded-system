@@ -121,7 +121,7 @@ void _main(const int semID) {
                                                    .clearText = false,
                                                    .triggerAlNum = false,
                                                    .putSpace = false};
-                for (i = 0; i < SWITCH_CNT; i++) {
+                for (i = 0; i <= SWITCH_CNT; i++) {
                     textEditorPl.keypad[i] = false;
                 }
 
@@ -138,7 +138,7 @@ void _main(const int semID) {
                            inputBuffer->switches[9]) {
                     textEditorPl.putSpace = true;
                 }
-                for (i = 0; i < SWITCH_CNT; i++) {
+                for (i = 0; i <= SWITCH_CNT; i++) {
                     textEditorPl.keypad[i] = inputBuffer->switches[i];
                 }
 
