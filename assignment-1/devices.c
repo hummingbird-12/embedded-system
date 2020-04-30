@@ -141,6 +141,7 @@ void resetDevices() {
     textLcdReset();
 }
 
+// Print the given array to the Dot Matrix device
 void dotPrintArray(const bool* data) {
     unsigned char processed[DOT_ROWS] = {'\0'};
     int i, j;
@@ -168,6 +169,7 @@ void dotPrintArray(const bool* data) {
 #endif
 }
 
+// Print '1' or 'A' to the Dot Matrix device
 void dotPrintChar(const char data) {
     switch (data) {
         case '1':
@@ -192,6 +194,7 @@ void dotReset() {
     writeToDevice(DOT, DOT_EMPTY, sizeof(DOT_EMPTY));
 }
 
+// Print the given integer to the FND device
 void fndPrint(const int data) {
     unsigned char digits[FND_MAX_DIGITS + 1] = {'\0'};
     int i, digit = 1;
@@ -201,6 +204,7 @@ void fndPrint(const int data) {
         return;
     }
 
+    // Parsing data to pass to device
     for (i = FND_MAX_DIGITS - 1; i >= 0; i--) {
         digits[i] = (data / digit) % 10;
         digit *= 10;
@@ -217,6 +221,7 @@ void fndReset() {
     fndPrint(0);
 }
 
+// Print the given integer to the LED device
 void ledPrint(const int data) {
     if (data < 0 || data > 255) {
         deviceLog(LED, ERROR, "Value out of bound (0~255): %d\n", data);
@@ -234,6 +239,7 @@ void ledReset() {
     ledPrint(0);
 }
 
+// Print the given string to the Text LCD device
 void textLcdPrint(const char* data) {
     char processed[TEXT_LCD_MAX_LEN + 1] = {'\0'};
     int dataLength = strlen(data);
@@ -261,6 +267,7 @@ void textLcdReset() {
     textLcdPrint("");
 }
 
+// Read KEYS (VOL+, VOL-, BACK)
 enum _keys keyRead() {
     struct input_event keyBuffer[KEY_MAX_CNT];
     const int keyEventSize = sizeof(struct input_event);
@@ -271,7 +278,6 @@ enum _keys keyRead() {
             case KEY_VOLUMEDOWN:
             case KEY_VOLUMEUP:
             case KEY_BACK:
-            case KEY_POWER:
                 deviceLog(KEY, INFO, "Received input: %d\n", keyBuffer[0].code);
                 return keyBuffer[0].code;
                 break;
@@ -282,6 +288,7 @@ enum _keys keyRead() {
     return 0;
 }
 
+// Read switches (SW(1)~SW(9))
 int switchRead() {
     unsigned char switchBuffer[SWITCH_CNT];
     int i, processed = 0;
