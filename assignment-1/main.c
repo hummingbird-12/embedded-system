@@ -41,7 +41,8 @@ int main() {
 
 void _main(const int semID) {
     static enum _mode mode = CLOCK;
-    bool modeChanged, quitFlag = false;
+    bool modeChanged, hasChange, quitFlag = false;
+    int i;
 
     clockPayload clockPl;
     counterPayload counterPl;
@@ -53,6 +54,8 @@ void _main(const int semID) {
         semop(semID, &p[SEM_INPUT_TO_MAIN], 1);
 
         modeChanged = false;
+        hasChange = false;
+
         if (inputBuffer->hasInput) {
             switch (inputBuffer->key) {
                 case KEY_VOLUMEDOWN:
@@ -94,7 +97,7 @@ void _main(const int semID) {
                     clockPl.increaseMinute = true;
                 }
 
-                clockMode(&clockPl);
+                hasChange = clockMode(&clockPl);
                 break;
             case COUNTER:
                 counterPl = (counterPayload){false, false, false, false, false};
@@ -113,14 +116,16 @@ void _main(const int semID) {
                     counterPl.increase0 = true;
                 }
 
-                counterMode(&counterPl);
+                hasChange = counterMode(&counterPl);
                 break;
             case TEXT_EDITOR:
                 textEditorPl = (textEditorPayload){.firstPayload = false,
                                                    .clearText = false,
                                                    .triggerAlNum = false,
                                                    .putSpace = false};
-                memset(textEditorPl.keypad, false, sizeof(textEditorPl.keypad));
+                for (i = 0; i < SWITCH_CNT; i++) {
+                    textEditorPl.keypad[i] = false;
+                }
 
                 if (modeChanged) {
                     textEditorPl.firstPayload = true;
@@ -135,10 +140,11 @@ void _main(const int semID) {
                            inputBuffer->switches[9]) {
                     textEditorPl.putSpace = true;
                 }
-                memcpy(textEditorPl.keypad, inputBuffer->switches,
-                       sizeof(textEditorPl.keypad));
+                for (i = 0; i < SWITCH_CNT; i++) {
+                    textEditorPl.keypad[i] = inputBuffer->switches[i];
+                }
 
-                textEditorMode(&textEditorPl);
+                hasChange = textEditorMode(&textEditorPl);
                 break;
             case DRAW_BOARD:
                 drawBoardPl = (drawBoardPayload){.firstPayload = false,
@@ -147,8 +153,9 @@ void _main(const int semID) {
                                                  .clearCanvas = false,
                                                  .toggleCursor = false,
                                                  .drawDot = false};
-                memset(drawBoardPl.moveCursor, false,
-                       sizeof(drawBoardPl.moveCursor));
+                for (i = 0; i < DRAW_BOARD_DIR_CNT; i++) {
+                    drawBoardPl.moveCursor[i] = false;
+                }
 
                 if (modeChanged) {
                     drawBoardPl.firstPayload = true;
@@ -186,16 +193,18 @@ void _main(const int semID) {
                         break;
                 }
 
-                drawBoardMode(&drawBoardPl);
+                hasChange = drawBoardMode(&drawBoardPl);
                 break;
             default:
                 break;
         }
 
-        // tell output payload is ready
-        semop(semID, &v[SEM_MAIN_TO_OUTPUT], 1);
-        // wait for output to complete
-        semop(semID, &p[SEM_OUTPUT_TO_MAIN], 1);
+        if (hasChange) {
+            // tell output payload is ready
+            semop(semID, &v[SEM_MAIN_TO_OUTPUT], 1);
+            // wait for output to complete
+            semop(semID, &p[SEM_OUTPUT_TO_MAIN], 1);
+        }
 
         initializeSharedMemory();
         usleep(140000);
@@ -204,7 +213,9 @@ void _main(const int semID) {
         semop(semID, &v[SEM_MAIN_TO_INPUT], 1);
     }
 
-    memset(outputBuffer->inUse, false, sizeof(outputBuffer->inUse));
+    for (i = 0; i < OUTPUT_DEVICES_CNT; i++) {
+        outputBuffer->inUse[i] = false;
+    }
     // tell output payload is ready
     semop(semID, &v[SEM_MAIN_TO_OUTPUT], 1);
     // wait for output to complete
@@ -213,10 +224,11 @@ void _main(const int semID) {
 
 void throwError(const char* error) {
     perror(error);
+    killChildProcesses();
     exit(1);
 }
 
-void clockMode(const clockPayload* payload) {
+bool clockMode(const clockPayload* payload) {
     // Set which devices will this mode use
     outputBuffer->inUse[DOT] = false;
     outputBuffer->inUse[FND] = true;
@@ -290,9 +302,11 @@ void clockMode(const clockPayload* payload) {
     // Save to shared memory
     outputBuffer->ledBuffer = leds;
     outputBuffer->fndBuffer = fnd;
+
+    return true;
 }
 
-void counterMode(const counterPayload* payload) {
+bool counterMode(const counterPayload* payload) {
     // Set which devices will this mode use
     outputBuffer->inUse[DOT] = false;
     outputBuffer->inUse[FND] = true;
@@ -301,6 +315,7 @@ void counterMode(const counterPayload* payload) {
 
     int fnd, leds;
     char digits[5] = {'\0'};
+    bool hasChange = false;
 
     static int value = 0;
     static enum _counterRadix radix = DEC;
@@ -309,15 +324,26 @@ void counterMode(const counterPayload* payload) {
     if (payload->firstPayload) {
         value = 0;
         radix = DEC;
+        hasChange = true;
     }
     // Change to next radix
     else if (payload->changeRadix) {
         radix = (radix + 1) % COUNTER_RADIX_CNT;
+        hasChange = true;
     }
 
     // Increase least significant digit
     if (payload->increase0) {
         value++;
+        hasChange = true;
+    }
+
+    if (payload->increase1 || payload->increase2) {
+        hasChange = true;
+    }
+
+    if (!hasChange) {
+        return false;
     }
 
     switch (radix) {
@@ -386,9 +412,11 @@ void counterMode(const counterPayload* payload) {
     // Save to shared memory
     outputBuffer->ledBuffer = leds;
     outputBuffer->fndBuffer = fnd;
+
+    return true;
 }
 
-void textEditorMode(const textEditorPayload* payload) {
+bool textEditorMode(const textEditorPayload* payload) {
     // Set which devices will this mode use
     outputBuffer->inUse[DOT] = true;
     outputBuffer->inUse[FND] = true;
@@ -397,7 +425,7 @@ void textEditorMode(const textEditorPayload* payload) {
 
     int i;
     char character;
-    bool moveIndex;
+    bool moveIndex, hasChange = false;
 
     static char text[TEXT_LCD_MAX_LEN] = {'\0'};
     static bool alpha = true;
@@ -414,6 +442,7 @@ void textEditorMode(const textEditorPayload* payload) {
         index = -1;
         prevKey = -1;
         prevKeyCount = 0;
+        hasChange = true;
     }
 
     moveIndex = true;
@@ -424,16 +453,19 @@ void textEditorMode(const textEditorPayload* payload) {
         count++;
         prevKey = -1;
         prevKeyCount = 0;
+        hasChange = true;
     } else if (payload->putSpace) {
         character = ' ';
         count++;
         prevKey = -1;
         prevKeyCount = 0;
+        hasChange = true;
     } else if (payload->triggerAlNum) {
         alpha = !alpha;
         count++;
         prevKey = -1;
         prevKeyCount = 0;
+        hasChange = true;
     } else if (alpha) {
         for (i = 1; i <= SWITCH_CNT; i++) {
             if (payload->keypad[i]) {
@@ -446,6 +478,7 @@ void textEditorMode(const textEditorPayload* payload) {
                 }
                 character = TEXT_EDITOR_ALPHA[i][prevKeyCount];
                 count++;
+                hasChange = true;
                 break;
             }
         }
@@ -456,9 +489,14 @@ void textEditorMode(const textEditorPayload* payload) {
                 count++;
                 prevKey = -1;
                 prevKeyCount = 0;
+                hasChange = true;
                 break;
             }
         }
+    }
+
+    if (!hasChange) {
+        return false;
     }
 
     if (character != '\0') {
@@ -482,9 +520,11 @@ void textEditorMode(const textEditorPayload* payload) {
     outputBuffer->fndBuffer = count;
     outputBuffer->dotCharBuffer = alpha ? 'A' : '1';
     memcpy(outputBuffer->textLcdBuffer, text, TEXT_LCD_MAX_LEN);
+
+    return true;
 }
 
-void drawBoardMode(const drawBoardPayload* payload) {
+bool drawBoardMode(const drawBoardPayload* payload) {
     // Set which devices will this mode use
     outputBuffer->inUse[DOT] = true;
     outputBuffer->inUse[FND] = true;
@@ -496,6 +536,7 @@ void drawBoardMode(const drawBoardPayload* payload) {
 
     int newCX, newCY, i, j;
     enum _drawBoardDirections dir;
+    bool hasChange = false;
 
     static int cursorX = 0, cursorY = 0;
     static int count = 0;
@@ -508,6 +549,7 @@ void drawBoardMode(const drawBoardPayload* payload) {
         count = 0;
         showCursor = true;
         drawBoardClearCanvas(canvas);
+        hasChange = true;
     }
 
     if (payload->resetMode) {
@@ -515,16 +557,20 @@ void drawBoardMode(const drawBoardPayload* payload) {
         count = 0;
         showCursor = true;
         drawBoardClearCanvas(canvas);
+        hasChange = true;
     } else if (payload->clearCanvas) {
         drawBoardClearCanvas(canvas);
         count++;
+        hasChange = true;
     } else if (payload->toggleCursor) {
         showCursor = !showCursor;
         count++;
+        hasChange = true;
     } else if (payload->drawDot) {
         canvas[cursorX * DOT_ROWS + cursorY] =
             !canvas[cursorX * DOT_ROWS + cursorY];
         count++;
+        hasChange = true;
     } else if (payload->invertDrawing) {
         for (i = 0; i < DOT_ROWS; i++) {
             for (j = 0; j < DOT_COLS; j++) {
@@ -532,6 +578,7 @@ void drawBoardMode(const drawBoardPayload* payload) {
             }
         }
         count++;
+        hasChange = true;
     } else {
         for (dir = 0; dir < DRAW_BOARD_DIR_CNT; dir++) {
             newCX = cursorX + directionsX[dir];
@@ -543,6 +590,7 @@ void drawBoardMode(const drawBoardPayload* payload) {
                     cursorY = newCY;
                 }
                 count++;
+                hasChange = true;
                 break;
             }
         }
@@ -570,7 +618,10 @@ void drawBoardMode(const drawBoardPayload* payload) {
         // Blink cursor
         outputBuffer->dotArrayBuffer[cursorX * DOT_ROWS + cursorY] =
             (deviceSec % 2) == 0;
+        hasChange = true;
     }
+
+    return hasChange;
 }
 
 int activeInputSwitch() {

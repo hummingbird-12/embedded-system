@@ -45,10 +45,10 @@ typedef struct _drawBoardPayload {
 
 void _main(const int);
 
-void clockMode(const clockPayload*);
-void counterMode(const counterPayload*);
-void textEditorMode(const textEditorPayload*);
-void drawBoardMode(const drawBoardPayload*);
+bool clockMode(const clockPayload*);
+bool counterMode(const counterPayload*);
+bool textEditorMode(const textEditorPayload*);
+bool drawBoardMode(const drawBoardPayload*);
 
 int activeInputSwitch();
 void drawBoardClearCanvas(bool*);

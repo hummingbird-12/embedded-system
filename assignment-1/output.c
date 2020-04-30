@@ -4,6 +4,7 @@ extern struct sembuf p[SEM_CNT], v[SEM_CNT];
 extern struct _shmOutBuf* outputBuffer;
 
 void output(const int semID) {
+    int i;
     bool currentInUse[OUTPUT_DEVICES_CNT];
     memset(currentInUse, false, sizeof(currentInUse));
 
@@ -39,7 +40,9 @@ void output(const int semID) {
             textLcdReset();
         }
 
-        memcpy(currentInUse, outputBuffer->inUse, sizeof(currentInUse));
+        for (i = 0; i < OUTPUT_DEVICES_CNT; i++) {
+            currentInUse[i] = outputBuffer->inUse[i];
+        }
 
         // tell main output is complete
         semop(semID, &v[SEM_OUTPUT_TO_MAIN], 1);

@@ -283,6 +283,8 @@ int switchRead() {
             processed += 1;
         }
     }
-    deviceLog(SWITCH, INFO, "Received input: %09d\n", processed);
+    if (processed != 0) {
+        deviceLog(SWITCH, INFO, "Received input: %09d\n", processed);
+    }
     return processed;
 }

@@ -105,12 +105,20 @@ void removeIpcObjects(const int semID, const int shmInID, const int shmOutID) {
 }
 
 void killChildProcesses() {
+    static bool called = false;
+    if (called) {
+        perror("Child processes already killed!");
+        return;
+    }
     if (kill(inputPID, SIGKILL) == -1) {
-        throwError("Error while killing input process!");
+        perror("Error while killing input process!");
+    } else {
+        waitpid(inputPID, NULL, 0);
     }
-    waitpid(inputPID, NULL, 0);
     if (kill(outputPID, SIGKILL) == -1) {
-        throwError("Error while killing output process!");
+        perror("Error while killing output process!");
+    } else {
+        waitpid(outputPID, NULL, 0);
     }
-    waitpid(outputPID, NULL, 0);
+    called = true;
 }
