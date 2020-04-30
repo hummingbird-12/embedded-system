@@ -102,7 +102,7 @@ void deviceLog(const enum _devices device, const enum _logLevel level,
     if (level != ERROR) {
         return;
     }
-#else
+#endif
     const char NAMES[][9] = {"DOT", "FND", "LED", "TEXT_LCD", "KEY", "SWITCH"};
     const char LEVELS[][8] = {"ERROR", "WARNING", "INFO"};
 
@@ -112,7 +112,6 @@ void deviceLog(const enum _devices device, const enum _logLevel level,
     va_start(args, format);
     vprintf(format, args);
     va_end(args);
-#endif
 }
 
 void writeToDevice(const enum _devices device, const void* data,
