@@ -47,6 +47,7 @@ unsigned long* FPGA_ADDR;
 unsigned char* ledAddr;
 
 void openDevices() {
+    // Open device driver files
     devices[DOT] = open(DOT_DEVICE, O_WRONLY);
     devices[FND] = open(FND_DEVICE, O_RDWR);
     devices[LED] = open(LED_DEVICE, O_RDWR | O_SYNC);
@@ -54,6 +55,7 @@ void openDevices() {
     devices[KEY] = open(KEY_DEVICE, O_RDONLY | O_NONBLOCK);
     devices[SWITCH] = open(SWITCH_DEVICE, O_RDWR);
 
+    // Check for devices that failed to open
     enum _devices dev;
     for (dev = 0; dev < DEVICES_CNT; dev++) {
         if (devices[dev] < 0) {
@@ -63,6 +65,7 @@ void openDevices() {
         }
     }
 
+    // Memory mapped IO for the LED device
     FPGA_ADDR =
         (unsigned long*) mmap(NULL, FPGA_MAP_LENGTH, PROT_READ | PROT_WRITE,
                               MAP_SHARED, devices[LED], FPGA_BASE_ADDR);
@@ -75,27 +78,31 @@ void openDevices() {
 
 void closeDevices() {
     enum _devices dev;
+    // Close device driver files
     for (dev = 0; dev < DEVICES_CNT; dev++) {
-        if (devices[dev] < 0) {
+        if (close(devices[dev]) < 0) {
             deviceLog(dev, WARNING, "Error while closing device: %s\n",
                       DEVICE_PATHS[dev]);
             return;
         }
     }
 
+    // Unmap the LED device
     if (munmap((void*) FPGA_ADDR, FPGA_MAP_LENGTH) < 0) {
         deviceLog(LED, WARNING, "Error while unmapping FPGA board\n");
         return;
     }
 }
 
+// Logging function for device interface.
+// Will only show `ERROR`s when the `_DEBUG_FLAG_` is disabled
 void deviceLog(const enum _devices device, const enum _logLevel level,
                const char* format, ...) {
 #ifndef _DEBUG_FLAG_
     if (level != ERROR) {
         return;
     }
-#endif
+#else
     const char NAMES[][9] = {"DOT", "FND", "LED", "TEXT_LCD", "KEY", "SWITCH"};
     const char LEVELS[][8] = {"ERROR", "WARNING", "INFO"};
 
@@ -105,6 +112,7 @@ void deviceLog(const enum _devices device, const enum _logLevel level,
     va_start(args, format);
     vprintf(format, args);
     va_end(args);
+#endif
 }
 
 void writeToDevice(const enum _devices device, const void* data,
@@ -114,9 +122,12 @@ void writeToDevice(const enum _devices device, const void* data,
         return;
     }
 
+    // LED is memory-mapped
     if (device == LED) {
         *ledAddr = *((int*) data);
-    } else {
+    }
+    // The rest of the devices
+    else {
         if (write(devices[device], data, size) < 0) {
             deviceLog(device, ERROR, "Write error\n");
             return;
