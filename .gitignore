@@ -63,3 +63,7 @@ dkms.conf
 
 # User-defined files
 memory.txt
+
+# Cross-compile Build Executables
+ex-5/test_app
+ex-6/kernel_timer_test
