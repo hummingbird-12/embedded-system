@@ -18,11 +18,11 @@ install:
 	cp -a fpga_fnd_driver.ko /nfsroot
 	cp -a fpga_test_fnd /nfsroot
 clean:
-	rm -rf *.ko
-	rm -rf *.mod.*
 	rm -rf *.o
+	rm -rf *.ko
+	rm -rf *.mod.c
+	rm -rf *.order
+	rm -rf *.symvers
+	rm -rf .*.cmd
+	rm -rf .tmp_versions
 	rm -rf fpga_test_fnd
-	rm -rf Module.symvers
-	rm -rf modules.order
-	rm -rf .fnd*
-	rm -rf .tmp*

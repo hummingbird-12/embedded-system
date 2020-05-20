@@ -18,11 +18,11 @@ install:
 	cp -a fpga_push_switch_driver.ko /nfsroot
 	cp -a fpga_test_push_switch /nfsroot
 clean:
-	rm -rf *.ko
-	rm -rf *.mod.*
 	rm -rf *.o
+	rm -rf *.ko
+	rm -rf *.mod.c
+	rm -rf *.order
+	rm -rf *.symvers
+	rm -rf .*.cmd
+	rm -rf .tmp_versions
 	rm -rf fpga_test_push_switch
-	rm -rf Module.symvers
-	rm -rf .tmp*
-	rm -rf .fpga*
-	rm -rf modules.order

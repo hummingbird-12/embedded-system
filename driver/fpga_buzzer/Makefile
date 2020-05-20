@@ -18,11 +18,11 @@ install:
 	cp -a fpga_buzzer_driver.ko /nfsroot
 	cp -a fpga_test_buzzer /nfsroot
 clean:
-	rm -rf *.ko
-	rm -rf *.mod.*
 	rm -rf *.o
+	rm -rf *.ko
+	rm -rf *.mod.c
+	rm -rf *.order
+	rm -rf *.symvers
+	rm -rf .*.cmd
+	rm -rf .tmp_versions
 	rm -rf fpga_test_buzzer
-	rm -rf Module.symvers
-	rm -rf modules.order
-	rm -rf .buzzer*
-	rm -rf .tmp*
