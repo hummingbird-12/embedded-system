@@ -9,6 +9,7 @@ static long timer_device_driver_ioctl(struct file*, unsigned int,
                                       unsigned long);
 
 static struct file_operations device_driver_fops = {
+    .owner = THIS_MODULE,
     .unlocked_ioctl = timer_device_driver_ioctl,
     .open = timer_device_driver_open,
     .release = timer_device_driver_release,
@@ -42,24 +43,33 @@ static void __exit device_driver_exit(void) {
 static int timer_device_driver_open(struct inode* inode, struct file* file) {
     printk(KERN_INFO "timer_device_driver_open\n");
 
-    try_module_get(THIS_MODULE);
-
     return SUCCESS;
 }
 
 static int timer_device_driver_release(struct inode* inode, struct file* file) {
     printk(KERN_INFO "timer_device_driver_release\n");
 
-    module_put(THIS_MODULE);
-
     return SUCCESS;
 }
 
 static long timer_device_driver_ioctl(struct file* file, unsigned int ioctl_num,
                                       unsigned long ioctl_param) {
+    char buffer[11];
+    char* temp;
+
     switch (ioctl_num) {
         case IOCTL_SET_OPTION:
             printk(KERN_INFO "[timer_device_driver_ioctl] IOCTL_SET_OPTION\n");
+
+            temp = (char*) ioctl_param;
+            if (strncpy_from_user(buffer, temp, strlen_user(temp)) < 0) {
+                printk("Error while reading user pointer\n");
+                return -1;
+            }
+            printk(KERN_INFO
+                   "[timer_device_driver_ioctl] Received parameter: %s\n",
+                   buffer);
+
             break;
         case IOCTL_COMMAND:
             printk(KERN_INFO "[timer_device_driver_ioctl] IOCTL_COMMAND\n");
