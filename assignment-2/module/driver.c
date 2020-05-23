@@ -31,8 +31,6 @@ static int __init device_driver_init(void) {
 
     printk(KERN_INFO "init module\n");
 
-    hello_world();
-
     return SUCCESS;
 }
 
@@ -45,11 +43,15 @@ static void __exit device_driver_exit(void) {
 static int timer_device_driver_open(struct inode* inode, struct file* file) {
     printk(KERN_INFO "timer_device_driver_open\n");
 
+    fpga_iomap_devices();
+
     return SUCCESS;
 }
 
 static int timer_device_driver_release(struct inode* inode, struct file* file) {
     printk(KERN_INFO "timer_device_driver_release\n");
+
+    fpga_iounmap_devices();
 
     return SUCCESS;
 }
