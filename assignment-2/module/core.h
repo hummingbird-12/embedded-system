@@ -10,5 +10,6 @@
 
 #include "driver.h"
 #include "fpga.h"
+#include "logger.h"
 
 #endif /* _CORE_H_INCLUDED_ */

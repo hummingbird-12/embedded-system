@@ -1,5 +1,5 @@
 obj-m	:= dev_driver.o
-dev_driver-objs := driver.o fpga.o
+dev_driver-objs := driver.o fpga.o logger.o
 
 KDIR	:=  /work/achroimx_kernel
 PWD		:= $(shell pwd)
