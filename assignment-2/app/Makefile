@@ -3,14 +3,13 @@ CC		:= arm-none-linux-gnueabi-gcc
 
 ADB			:= adb
 ADB_DIR		:= /data/local/tmp
-ADB_EXEC	:= "$(ADB_DIR)/$(APP) $(foo)"
 
 default:
-	$(CC) -static -o $(APP) $(APP).c
+	$(CC) -Wall -static -o $(APP) $(APP).c
 
 push: default
-	$(ADB) push $(APP) $(ADB_DIR)
-	$(ADB) shell $(ADB_EXEC)
+	$(ADB) push -p $(APP) $(ADB_DIR)
+	echo "[APP] Push complete\n"
 
 clean:
 	rm -rf $(APP)

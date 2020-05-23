@@ -6,16 +6,13 @@ PWD		:= $(shell pwd)
 
 ADB			:= adb
 ADB_DIR		:= /data/local/tmp
-ADB_INSMOD	:= "insmod $(ADB_DIR)/$(MOD)"
-ADB_RMMOD	:= "rmmod $(ADB_DIR)/$(MOD)"
 
 default:
 	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules ARCH=arm
 
 push: default
 	$(ADB) push $(MOD) $(ADB_DIR)
-	$(ADB) shell $(ADB_RMMOD)
-	$(ADB) shell $(ADB_INSMOD)
+	echo "[MODULE] Push complete\n"
 
 clean:
 	rm -rf *.o

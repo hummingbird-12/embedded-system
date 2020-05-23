@@ -4,6 +4,7 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include "../module/timer_device.h"
 
@@ -33,6 +34,8 @@ int main(int argc, char* argv[]) {
 
     ioctl(fd, IOCTL_SET_OPTION, "Hello");
     ioctl(fd, IOCTL_COMMAND);
+
+    close(fd);
 
     return 0;
 }
