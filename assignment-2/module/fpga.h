@@ -8,6 +8,8 @@
 #define LED_ADDRESS 0x08000016
 #define TEXT_LCD_ADDRESS 0x08000090
 
+#define TEXT_LCD_BUFFER_SIZE 32
+
 typedef enum _FPGA_DEVICES { DOT, FND, LED, TEXT_LCD } fpga;
 
 extern char *fpga_addr[FPGA_DEVICES_CNT];
@@ -17,5 +19,6 @@ void fpga_iounmap_devices(void);
 void fpga_dot_write(const int);
 void fpga_fnd_write(const int, const int);
 void fpga_led_write(const int);
+void fpga_text_lcd_write(const char *, const int, const char *, const int);
 
 #endif /* _FPGA_H_INCLUDED_ */

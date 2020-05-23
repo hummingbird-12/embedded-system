@@ -77,3 +77,36 @@ void fpga_led_write(const int digit) {
 
     outw(value, (unsigned int) fpga_addr[LED]);
 }
+
+/*
+ * Prints given
+ * `str1` starting at `start1` of the first line and
+ * `str2` starting at `start2` of the second line
+ * in FPGA's Text LCD device.
+ * The lengths of `str1` and `str2` should be between 0 and 16, including.
+ * `start1` and `start2` should be between 0 and 15, including.
+ */
+void fpga_text_lcd_write(const char* str1, const int start1, const char* str2,
+                         const int start2) {
+    int i;
+    unsigned short int value;
+    const int index1 = start1;
+    const int index2 = TEXT_LCD_BUFFER_SIZE / 2 + start2;
+    const int len1 = strlen(str1);
+    const int len2 = strlen(str2);
+    unsigned char buffer[TEXT_LCD_BUFFER_SIZE + 1] = {0};
+
+    memset(buffer, ' ', index1);
+    strncat(buffer, str1, len1);
+    memset(buffer + index1 + len1, ' ', index2 - (index1 + len1));
+    strncat(buffer, str2, len2);
+    memset(buffer + index2 + len2, ' ', TEXT_LCD_BUFFER_SIZE - (index2 + len2));
+    buffer[TEXT_LCD_BUFFER_SIZE] = '\0';
+
+    logger(INFO, "Writing \"%s\" into Text LCD device\n", buffer);
+
+    for (i = 0; i < TEXT_LCD_BUFFER_SIZE; i += 2) {
+        value = (buffer[i] & 0xFF) << 8 | (buffer[i + 1] & 0xFF);
+        outw(value, (unsigned int) fpga_addr[TEXT_LCD] + i);
+    }
+}
