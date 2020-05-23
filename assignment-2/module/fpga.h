@@ -14,5 +14,8 @@ extern char *fpga_addr[FPGA_DEVICES_CNT];
 
 void fpga_iomap_devices(void);
 void fpga_iounmap_devices(void);
+void fpga_dot_write(const int);
+void fpga_fnd_write(const int, const int);
+void fpga_led_write(const int);
 
 #endif /* _FPGA_H_INCLUDED_ */
