@@ -19,7 +19,7 @@ static int __init device_driver_init(void) {
     const int registration =
         register_chrdev(DEVICE_MAJOR_NUMBER, DEVICE_NAME, &device_driver_fops);
 
-    printk("device_driver_init\n");
+    printk(KERN_INFO "device_driver_init\n");
 
     if (registration != 0) {
         printk(KERN_ALERT "Error while registering %d\n", registration);
@@ -30,6 +30,8 @@ static int __init device_driver_init(void) {
            DEVICE_MAJOR_NUMBER);
 
     printk(KERN_INFO "init module\n");
+
+    hello_world();
 
     return SUCCESS;
 }
@@ -73,6 +75,9 @@ static long timer_device_driver_ioctl(struct file* file, unsigned int ioctl_num,
             break;
         case IOCTL_COMMAND:
             printk(KERN_INFO "[timer_device_driver_ioctl] IOCTL_COMMAND\n");
+            temp = ioremap(FND_ADDRESS, 0x4);
+            outw(0x9876, (unsigned int) temp);
+            iounmap(temp);
             break;
         default:
             printk(KERN_ALERT "Unrecognized ioctl command: %ud\n", ioctl_num);

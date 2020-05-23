@@ -8,8 +8,8 @@ default:
 	$(CC) -Wall -static -o $(APP) $(APP).c
 
 push: default
-	$(ADB) push -p $(APP) $(ADB_DIR)
-	echo "[APP] Push complete\n"
+	$(ADB) push -p $(APP) $(ADB_DIR)	
+	@printf "\n[APP] Push complete\n\n"
 
 clean:
 	rm -rf $(APP)
