@@ -6,6 +6,9 @@ PWD		:= $(shell pwd)
 default:
 	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules ARCH=arm
 
+push: default
+	adb push $(subst .o,.ko,$(obj-m)) /data/local/tmp
+
 clean:
 	rm -rf *.o
 	rm -rf *.ko
