@@ -1,10 +1,10 @@
 obj-m	:= dev_driver.o
-dev_driver-objs := driver.o fpga.o logger.o
+dev_driver-objs := driver.o fpga.o logger.o timer.o
 
 KDIR	:=  /work/achroimx_kernel
 PWD		:= $(shell pwd)
 
-MOD 	:= $(subst .o,.ko,$(obj-m))
+MOD 		:= $(subst .o,.ko,$(obj-m))
 ADB			:= adb
 ADB_DIR		:= /data/local/tmp
 

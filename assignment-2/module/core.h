@@ -11,5 +11,6 @@
 #include "driver.h"
 #include "fpga.h"
 #include "logger.h"
+#include "timer.h"
 
 #endif /* _CORE_H_INCLUDED_ */
