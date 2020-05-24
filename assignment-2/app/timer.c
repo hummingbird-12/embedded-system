@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -27,7 +28,7 @@ int main(int argc, char* argv[]) {
     const int timerCount = atoi(argv[2]);
     const int timerInit = atoi(argv[3]);
 
-    if (timerInterval == 0 || timerCount == 0 || timerInit == 0) {
+    if (timerInterval == 0 || timerCount == 0) {
         printf("Error parsing arguments!\n");
         return -1;
     }
@@ -43,6 +44,10 @@ int main(int argc, char* argv[]) {
     }
 
     hasNonZero = 0;
+    if (strlen(argv[3]) != 4) {
+        printf("TIMER_INIT must consist of 4 digits.\n");
+        return -1;
+    }
     for (i = 0; i < 4; i++) {
         if (!isdigit(argv[3][i]) || argv[3][i] == '9') {
             printf(
