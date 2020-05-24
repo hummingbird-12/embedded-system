@@ -37,6 +37,7 @@ static int __init device_driver_init(void) {
            DEVICE_MAJOR_NUMBER);
 
     fpga_iomap_devices();
+    initizlize_timer();
 
     return SUCCESS;
 }
@@ -121,7 +122,7 @@ static long timer_device_driver_ioctl(struct file* file, unsigned int ioctl_num,
             }
             strncpy(timerInit, buffer + 6, 4);
 
-            initialize_timer(timerInit, timerInterval, timerCount);
+            initialize_timer_state(timerInit, timerInterval, timerCount);
 
             break;
         case IOCTL_COMMAND:  // IOCTL to start the timer feature

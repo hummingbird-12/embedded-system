@@ -9,7 +9,8 @@ static void move_text(t_state*, const int);
 /*
  * Sets the initial state as defined by the parameters.
  */
-void initialize_timer(const char* init, const int interval, const int count) {
+void initialize_timer_state(const char* init, const int interval,
+                            const int count) {
     int i;
 
     logger(INFO,
@@ -34,9 +35,6 @@ void initialize_timer(const char* init, const int interval, const int count) {
     timer_state.count = 0;
     timer_state.COUNT_END = count;
     timer_state.INTERVAL = interval;
-
-    // Initialize timer
-    init_timer(&(timer_state.timer));
 }
 
 /*
@@ -55,6 +53,11 @@ void start_timer(void) {
 
     add_timer(&(timer_state.timer));
 }
+
+/*
+ * Initializes timer.
+ */
+void initizlize_timer(void) { init_timer(&(timer_state.timer)); }
 
 /*
  * Deletes timer's sync.

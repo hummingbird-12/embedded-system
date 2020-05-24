@@ -21,8 +21,9 @@ typedef struct _TIMER_STATE {
     short digit_index;   /* Current index to print the digit */
 } t_state;
 
-void initialize_timer(const char*, const int, const int);
+void initialize_timer_state(const char*, const int, const int);
 void start_timer(void);
+void initizlize_timer(void);
 void delete_timer(void);
 
 #endif /* _TIMER_H_INCLUDED_ */
