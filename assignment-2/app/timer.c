@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,14 +7,19 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "../module/timer_device.h"
+#include "driver_specs.h"
 
 #define ARGS_CNT 4
 #define DEVICE_FILE(X) ("/dev/" DEVICE_NAME)
 
 int main(int argc, char* argv[]) {
+    int i, hasNonZero;
+
     if (argc != ARGS_CNT) {
         printf("Incorrect set of arguments!\n");
+        printf(
+            "Usage: ./timer TIMER_INTERVAL[1-100] TIMER_CNT[1-100] "
+            "TIMER_INIT[0001-8000]\n");
         return -1;
     }
 
@@ -23,6 +29,37 @@ int main(int argc, char* argv[]) {
 
     if (timerInterval == 0 || timerCount == 0 || timerInit == 0) {
         printf("Error parsing arguments!\n");
+        return -1;
+    }
+
+    if (timerInterval < 1 || timerInterval > 100) {
+        printf("TIMER_INTERVAL should be between 1 and 100, including.\n");
+        return -1;
+    }
+
+    if (timerCount < 1 || timerCount > 100) {
+        printf("TIMER_CNT should be between 1 and 100, including.\n");
+        return -1;
+    }
+
+    hasNonZero = 0;
+    for (i = 0; i < 4; i++) {
+        if (!isdigit(argv[3][i]) || argv[3][i] == '9') {
+            printf(
+                "TIMER_INIT must only have digits between 0 and 8, "
+                "including.\n");
+            return -1;
+        }
+        if (argv[3][i] - '0' > 0) {
+            if (hasNonZero != 0) {
+                printf("TIMER_INIT must only have a single non-zero digit.\n");
+                return -1;
+            }
+            hasNonZero = 1;
+        }
+    }
+    if (hasNonZero == 0) {
+        printf("TIMER_INIT must have a single non-zero digit.\n");
         return -1;
     }
 
