@@ -19,9 +19,10 @@ typedef struct _TIMER_STATE {
     short digit_index;
 } t_state;
 
-void timer_initialize(const char*, const int, const int);
+void initialize_timer(const char*, const int, const int);
+void start_timer(void);
+void delete_timer(void);
 void timer_callback(unsigned long);
-void timer_start(void);
 void print_state(const t_state*);
 void move_text(t_state*, const int);
 

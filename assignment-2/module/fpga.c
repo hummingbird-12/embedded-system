@@ -57,7 +57,7 @@ void fpga_dot_write(const int digit) {
  * The digits of other indexes will be 0.
  */
 void fpga_fnd_write(const int index, const int digit) {
-    const unsigned short value = digit << (4 * index);
+    const unsigned short value = digit << (12 - 4 * index);
 
     logger(INFO, "Printing digit %d at index %d into FND device\n", digit,
            index);
@@ -98,12 +98,15 @@ void fpga_text_lcd_write(const char* str1, const int start1, const char* str2,
 
     memset(buffer, ' ', index1);
     strncat(buffer, str1, len1);
+
+    logger(INFO, "Writing line 1 \"%16s\" into Text LCD device\n", buffer);
+
     memset(buffer + index1 + len1, ' ', index2 - (index1 + len1));
     strncat(buffer, str2, len2);
     memset(buffer + index2 + len2, ' ', TEXT_LCD_BUFFER_SIZE - (index2 + len2));
     buffer[TEXT_LCD_BUFFER_SIZE] = '\0';
 
-    logger(INFO, "Writing \"%s\" into Text LCD device\n", buffer);
+    logger(INFO, "Writing line 2 \"%16s\" into Text LCD device\n", buffer + 16);
 
     for (i = 0; i < TEXT_LCD_BUFFER_SIZE; i += 2) {
         value = (buffer[i] & 0xFF) << 8 | (buffer[i + 1] & 0xFF);

@@ -2,8 +2,14 @@
 
 static t_state timer_state;
 
-void timer_initialize(const char* init, const int interval, const int count) {
+void initialize_timer(const char* init, const int interval, const int count) {
     int i;
+
+    logger(INFO,
+           "[timer_initialize] Received parameters: init = %s\tinterval = "
+           "%d\tcount = %d\n",
+           init, interval, count);
+
     for (i = 0; i < 4; i++) {
         if (init[i] != '0') {
             timer_state.digit = init[i] - '0';
@@ -16,13 +22,16 @@ void timer_initialize(const char* init, const int interval, const int count) {
     strncpy(timer_state.text[0], STUDENT_ID, 8);
     strncpy(timer_state.text[1], STUDENT_NAME, 8);
 
+    timer_state.count = 0;
     timer_state.COUNT_END = count;
     timer_state.INTERVAL = interval;
 
     init_timer(&(timer_state.timer));
 }
 
-void timer_start(void) {
+void start_timer(void) {
+    del_timer_sync(&(timer_state.timer));
+
     print_state(&timer_state);
 
     timer_state.timer.expires =
@@ -33,12 +42,15 @@ void timer_start(void) {
     add_timer(&(timer_state.timer));
 }
 
+void delete_timer(void) { del_timer_sync(&(timer_state.timer)); }
+
 void timer_callback(unsigned long timeout) {
     t_state* payload = (t_state*) timeout;
 
     if (++(payload->count) == payload->COUNT_END) {
         payload->digit = 0;
         payload->text[0][0] = payload->text[1][0] = '\0';
+        del_timer_sync(&(timer_state.timer));
     } else {
         payload->digit = (payload->digit + 1) % STATE_ROTATION;
         if (++(payload->count) % STATE_ROTATION == 0) {
@@ -47,21 +59,24 @@ void timer_callback(unsigned long timeout) {
 
         move_text(payload, 0);
         move_text(payload, 1);
-    }
-    print_state(payload);
 
-    payload->timer.expires = get_jiffies_64() + payload->INTERVAL * HZ;
-    payload->timer.data = (unsigned long) &timer_state;
-    payload->timer.function = timer_callback;
-    add_timer(&(payload->timer));
+        payload->timer.expires =
+            get_jiffies_64() + payload->INTERVAL * (HZ / 10);
+        payload->timer.data = (unsigned long) &timer_state;
+        payload->timer.function = timer_callback;
+        add_timer(&(payload->timer));
+    }
+
+    logger(INFO, "Current timer count: %d\n", payload->count);
+    print_state(payload);
 }
 
 void print_state(const t_state* payload) {
     fpga_dot_write(payload->digit);
     fpga_fnd_write(payload->digit_index, payload->digit);
     fpga_led_write(payload->digit);
-    fpga_text_lcd_write(STUDENT_ID, payload->text_index[0], STUDENT_NAME,
-                        payload->text_index[1]);
+    fpga_text_lcd_write(payload->text[0], payload->text_index[0],
+                        payload->text[1], payload->text_index[1]);
 }
 
 void move_text(t_state* payload, const int line) {

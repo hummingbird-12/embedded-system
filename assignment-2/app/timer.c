@@ -32,7 +32,9 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    ioctl(fd, IOCTL_SET_OPTION, "Hello");
+    char payload[11] = {'\0'};
+    sprintf(payload, "%03d%03d%04d", timerInterval, timerCount, timerInit);
+    ioctl(fd, IOCTL_SET_OPTION, payload);
     ioctl(fd, IOCTL_COMMAND);
 
     close(fd);
