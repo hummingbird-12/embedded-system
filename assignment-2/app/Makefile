@@ -1,15 +1,16 @@
 APP		:= timer
 CC		:= arm-none-linux-gnueabi-gcc
+OUT		:= app
 
 ADB			:= adb
 ADB_DIR		:= /data/local/tmp
 
 default:
-	$(CC) -Wall -static -o $(APP) $(APP).c
+	$(CC) -Wall -static -o $(OUT) $(APP).c
 
 push: default
-	$(ADB) push -p $(APP) $(ADB_DIR)	
+	$(ADB) push -p $(OUT) $(ADB_DIR)	
 	@printf "\n[APP] Push complete\n\n"
 
 clean:
-	rm -rf $(APP)
+	rm -rf $(OUT)

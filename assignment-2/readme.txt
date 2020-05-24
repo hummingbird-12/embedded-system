@@ -13,7 +13,7 @@
 
     $ make push # to compile and do `adb push`
     ```
-    * Compiled app: `app/timer`
+    * Compiled app: `app/app`
     * Compiled module: `module/dev_driver.ko`
     
 2. In `minicom`, do the following:
@@ -22,7 +22,7 @@
     cd /data/local/tmp
     insmod dev_driver.ko
     mknod /dev/dev_driver c 242 0 # if there is no device file
-    ./timer TIMER_INTERVAL[1-100] TIMER_CNT[1-100] TIMER_INIT[0001-8000]
+    ./app TIMER_INTERVAL[1-100] TIMER_CNT[1-100] TIMER_INIT[0001-8000]
     ...
     rmmod dev_driver
     ```
