@@ -1,5 +1,5 @@
-#ifndef _TIMER_DEVICE_H_INCLUDED_
-#define _TIMER_DEVICE_H_INCLUDED_
+#ifndef _DRIVER_SPECS_H_INCLUDED_
+#define _DRIVER_SPECS_H_INCLUDED_
 
 #include <linux/ioctl.h>
 
@@ -9,4 +9,4 @@
 #define IOCTL_SET_OPTION _IOW(DEVICE_MAJOR_NUMBER, 0, char*)
 #define IOCTL_COMMAND _IO(DEVICE_MAJOR_NUMBER, 0)
 
-#endif /* _TIMER_DEVICE_H_INCLUDED_ */
+#endif /* _DRIVER_SPECS_H_INCLUDED_ */

@@ -16,6 +16,7 @@
 int main(int argc, char* argv[]) {
     int i, hasNonZero;
 
+    // Argument checking and parsing
     if (argc != ARGS_CNT) {
         printf("Incorrect set of arguments!\n");
         printf(
@@ -33,16 +34,19 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
+    // Check for correct boundaries
     if (timerInterval < 1 || timerInterval > 100) {
         printf("TIMER_INTERVAL should be between 1 and 100, including.\n");
         return -1;
     }
 
+    // Check for correct boundaries
     if (timerCount < 1 || timerCount > 100) {
         printf("TIMER_CNT should be between 1 and 100, including.\n");
         return -1;
     }
 
+    // Check for TIMER_INIT argument
     hasNonZero = 0;
     if (strlen(argv[3]) != 4) {
         printf("TIMER_INIT must consist of 4 digits.\n");
@@ -68,6 +72,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
+    // Open device file
     const int fd = open(DEVICE_FILE(DEVICE_NAME), O_WRONLY);
     if (fd == -1) {
         printf("Error opening device file\n");
@@ -76,9 +81,15 @@ int main(int argc, char* argv[]) {
 
     char payload[11] = {'\0'};
     sprintf(payload, "%03d%03d%04d", timerInterval, timerCount, timerInit);
+
+    /*
+     * Pass arguments with `IOCTL_SET_OPTION`
+     * and start timer with `IOCTL_COMMAND`
+     */
     ioctl(fd, IOCTL_SET_OPTION, payload);
     ioctl(fd, IOCTL_COMMAND);
 
+    // Close device file
     close(fd);
 
     return 0;

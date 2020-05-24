@@ -7,6 +7,9 @@ static const char* FPGA_DEVICES_STR[] = {"DOT", "FND", "LED", "TEXT_LCD"};
 static const int FPGA_HW_ADDR[] = {DOT_ADDRESS, FND_ADDRESS, LED_ADDRESS,
                                    TEXT_LCD_ADDRESS};
 
+/*
+ * IO-maps the FPGA's devices.
+ */
 void fpga_iomap_devices(void) {
     fpga dev;
 
@@ -25,6 +28,9 @@ void fpga_iomap_devices(void) {
     }
 }
 
+/*
+ * IO-unmaps the FPGA's devices.
+ */
 void fpga_iounmap_devices(void) {
     fpga dev;
 

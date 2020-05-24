@@ -1,5 +1,8 @@
 #include "core.h"
 
+/*
+ * A logger function to use across the driver.
+ */
 void logger(const log_level level, const char* format, ...) {
     va_list args;
 
