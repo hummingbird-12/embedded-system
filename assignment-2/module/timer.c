@@ -50,11 +50,11 @@ void timer_callback(unsigned long timeout) {
     if (++(payload->count) == payload->COUNT_END) {
         payload->digit = 0;
         payload->text[0][0] = payload->text[1][0] = '\0';
-        del_timer_sync(&(timer_state.timer));
     } else {
-        payload->digit = (payload->digit + 1) % STATE_ROTATION;
-        if (++(payload->count) % STATE_ROTATION == 0) {
-            payload->digit_index = (payload->digit_index + 1) % STATE_ROTATION;
+        payload->digit =
+            (payload->digit == STATE_ROTATION ? 1 : (payload->digit + 1));
+        if (payload->count % STATE_ROTATION == 0) {
+            payload->digit_index = (payload->digit_index + 1) % 4;
         }
 
         move_text(payload, 0);
@@ -67,11 +67,12 @@ void timer_callback(unsigned long timeout) {
         add_timer(&(payload->timer));
     }
 
-    logger(INFO, "Current timer count: %d\n", payload->count);
     print_state(payload);
 }
 
 void print_state(const t_state* payload) {
+    logger(INFO, "Current timer count: %d\n", payload->count);
+
     fpga_dot_write(payload->digit);
     fpga_fnd_write(payload->digit_index, payload->digit);
     fpga_led_write(payload->digit);
@@ -83,12 +84,12 @@ void move_text(t_state* payload, const int line) {
     if (payload->text_direction[line] == RIGHT) {
         if (++(payload->text_index[line]) + strlen(payload->text[line]) >
             TEXT_LCD_BUFFER_SIZE / 2) {
-            --(payload->text_index[line]);
+            payload->text_index[line] -= 2;
             payload->text_direction[line] = LEFT;
         }
     } else {
         if (--(payload->text_index[line]) < 0) {
-            ++(payload->text_index[line]);
+            payload->text_index[line] += 2;
             payload->text_direction[line] = RIGHT;
         }
     }
