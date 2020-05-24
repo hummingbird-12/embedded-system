@@ -9,7 +9,7 @@
 typedef struct _TIMER_STATE {
     struct timer_list timer;
 
-    char text[2][9];
+    char text[2][17];
     enum _DIR { RIGHT, LEFT } text_direction[2];
     int count;
     int COUNT_END;

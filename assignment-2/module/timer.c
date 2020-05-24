@@ -19,8 +19,8 @@ void initialize_timer(const char* init, const int interval, const int count) {
     }
     timer_state.text_index[0] = timer_state.text_index[1] = 0;
     timer_state.text_direction[0] = timer_state.text_direction[1] = RIGHT;
-    strncpy(timer_state.text[0], STUDENT_ID, 8);
-    strncpy(timer_state.text[1], STUDENT_NAME, 8);
+    strncpy(timer_state.text[0], STUDENT_ID, strlen(STUDENT_ID));
+    strncpy(timer_state.text[1], STUDENT_NAME, strlen(STUDENT_NAME));
 
     timer_state.count = 0;
     timer_state.COUNT_END = count;
