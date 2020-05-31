@@ -14,10 +14,14 @@ static enum _BTN_PRESS {
     BACK,
     VOL_UP,
     VOL_DOWN,
-} last_pressed = INIT;
+} last_pressed =
+    INIT;  // Pressed button tracker to prevent consecutive pressing
 
-static int is_vol_down_pressing = 0;
+static int is_vol_down_pressing = 0;  // Flag showing Vol- button's status
 
+/*
+ * Interrupt registration and initialization.
+ */
 void register_interrupts(void) {
     int irq, ret;
 
@@ -52,6 +56,9 @@ void register_interrupts(void) {
     is_vol_down_pressing = 0;
 }
 
+/*
+ * Releases interrupts.
+ */
 void release_interrupts(void) {
     logger(INFO, "[interrupt] Releasing interrupt handlers\n");
 
@@ -61,19 +68,30 @@ void release_interrupts(void) {
     free_irq(gpio_to_irq(GPIO_VOLDOWN), NULL);
 }
 
+/*
+ * Puts app process into wait queue.
+ */
 void sleep_app(void) {
     logger(INFO, "[interrupt] Putting process into wait queue\n");
 
     interruptible_sleep_on(&wait_queue);
 }
 
+/*
+ * Wakes up app process.
+ */
 void wake_app(void) {
     logger(INFO, "[interrupt] Waking up app process\n");
 
     __wake_up(&wait_queue, 1, 1, NULL);
 }
 
+/*
+ * Interrupt handler for Home button.
+ * Starts the stopwatch.
+ */
 static irqreturn_t home_btn_handler(int irq, void* dev_id) {
+    // Ignore consecutive pressing
     if (last_pressed == HOME) {
         return IRQ_HANDLED;
     }
@@ -85,10 +103,17 @@ static irqreturn_t home_btn_handler(int irq, void* dev_id) {
     return IRQ_HANDLED;
 }
 
+/*
+ * Interrupt handler for Back button.
+ * Pauses the stopwatch.
+ */
 static irqreturn_t back_btn_handler(int irq, void* dev_id) {
+    // Ignore consecutive pressing
     if (last_pressed == BACK) {
         return IRQ_HANDLED;
     }
+
+    // Only handle Back button when stopwatch is running
     if (last_pressed != HOME) {
         logger(INFO,
                "[interrupt] Ignoring Back button interrupt when stopwatch is "
@@ -103,7 +128,12 @@ static irqreturn_t back_btn_handler(int irq, void* dev_id) {
     return IRQ_HANDLED;
 }
 
+/*
+ * Interrupt handler for Vol+ button.
+ * Resets the stopwatch.
+ */
 static irqreturn_t vol_up_btn_handler(int irq, void* dev_id) {
+    // Ignore consecutive pressing
     if (last_pressed == VOL_UP) {
         return IRQ_HANDLED;
     }
@@ -115,6 +145,10 @@ static irqreturn_t vol_up_btn_handler(int irq, void* dev_id) {
     return IRQ_HANDLED;
 }
 
+/*
+ * Interrupt handler for Vol- button.
+ * Exits if pressed for 3 seconds or more.
+ */
 static irqreturn_t vol_down_btn_handler(int irq, void* dev_id) {
     // Vol- is pressed
     if (is_vol_down_pressing == 0) {

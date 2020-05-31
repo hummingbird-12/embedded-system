@@ -91,14 +91,13 @@ static void stopwatch_timer_callback(unsigned long timeout) {
     payload->elapsed_seconds = (payload->elapsed_seconds + 1) % MAX_SECONDS;
     payload->last_callback = get_jiffies_64();
 
-    // Print updated state
     print_stopwatch_state(payload);
 
     add_next_stopwatch_timer();
 }
 
 /*
- * Prints the state defined in `payload` in the FND device.
+ * Prints the time defined by `payload` in the FND device.
  */
 static void print_stopwatch_state(const sw_state* payload) {
     const int seconds = payload->elapsed_seconds;

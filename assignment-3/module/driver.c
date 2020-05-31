@@ -19,7 +19,8 @@ static struct file_operations device_driver_fops = {
 
 /*
  * Called on `insmod`.
- * Registers the device driver and io-maps the FPGA devices.
+ * Registers the device driver, io-maps the FND device
+ * and initializes timers.
  */
 static int __init stopwatch_device_driver_init(void) {
     const int registration =
@@ -45,8 +46,8 @@ static int __init stopwatch_device_driver_init(void) {
 
 /*
  * Called on `rmmod`.
- * Deregisters the device driver, deletes timer sync and io-unmaps the FPGA
- * devices.
+ * Deregisters the device driver, deletes timer sync
+ * and io-unmaps the FND device.
  */
 static void __exit stopwatch_device_driver_exit(void) {
     logger(INFO, "[stopwatch_device_driver] exit\n");
@@ -58,7 +59,7 @@ static void __exit stopwatch_device_driver_exit(void) {
 
 /*
  * Called on `open()`.
- * Keeps track of driver's usage.
+ * Keeps track of driver's usage and registers interrupts.
  */
 static int stopwatch_device_driver_open(struct inode *inode,
                                         struct file *file) {
@@ -76,7 +77,7 @@ static int stopwatch_device_driver_open(struct inode *inode,
 
 /*
  * Called on `close()`.
- * Keeps track of driver's usage.
+ * Keeps track of driver's usage and releases interrupts.
  */
 static int stopwatch_device_driver_release(struct inode *inode,
                                            struct file *file) {
@@ -89,6 +90,10 @@ static int stopwatch_device_driver_release(struct inode *inode,
     return SUCCESS;
 }
 
+/*
+ * Called on `write()`.
+ * Initializes the stopwatch feature and puts app process into wait queue.
+ */
 static int stopwatch_device_driver_write(struct file *file,
                                          const char __user *buf, size_t count,
                                          loff_t *f_pos) {
