@@ -93,6 +93,8 @@ static int stopwatch_device_driver_release(struct inode *inode,
 static int stopwatch_device_driver_write(struct file *file,
                                          const char __user *buf, size_t count,
                                          loff_t *f_pos) {
+    logger(INFO, "[stopwatch_device_driver] write\n");
+
     sleep_app();
 
     return 0;

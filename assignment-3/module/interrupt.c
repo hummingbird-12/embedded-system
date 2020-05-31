@@ -14,34 +14,31 @@ void register_interrupts(void) {
     // Register HOME button interrupt
     gpio_direction_input(GPIO_HOME);
     irq = gpio_to_irq(GPIO_HOME);
-    logger(INFO, "Home button IRQ Number : %d\n", irq);
-    ret =
-        request_irq(irq, home_btn_handler, IRQF_TRIGGER_RISING, "Home btn", 0);
+    logger(INFO, "[interrupt] Home button IRQ Number : %d\n", irq);
+    ret = request_irq(irq, home_btn_handler, IRQF_TRIGGER_RISING, "home", 0);
 
     // Register BACK button interrupt
     gpio_direction_input(GPIO_BACK);
     irq = gpio_to_irq(GPIO_BACK);
-    logger(INFO, "Back button IRQ Number : %d\n", irq);
-    ret =
-        request_irq(irq, back_btn_handler, IRQF_TRIGGER_RISING, "Back btn", 0);
+    logger(INFO, "[interrupt] Back button IRQ Number : %d\n", irq);
+    ret = request_irq(irq, back_btn_handler, IRQF_TRIGGER_RISING, "back", 0);
 
     // Register VOL+ button interrupt
     gpio_direction_input(GPIO_VOLUP);
     irq = gpio_to_irq(GPIO_VOLUP);
-    logger(INFO, "Vol+ button IRQ Number : %d\n", irq);
-    ret = request_irq(irq, vol_up_btn_handler, IRQF_TRIGGER_RISING, "Vol+ btn",
-                      0);
+    logger(INFO, "[interrupt] Vol+ button IRQ Number : %d\n", irq);
+    ret = request_irq(irq, vol_up_btn_handler, IRQF_TRIGGER_RISING, "vol+", 0);
 
     // Register VOL- button interrupt
     gpio_direction_input(GPIO_VOLDOWN);
     irq = gpio_to_irq(GPIO_VOLDOWN);
-    logger(INFO, "Vol- button IRQ Number : %d\n", irq);
-    ret = request_irq(irq, vol_down_btn_handler, IRQF_TRIGGER_RISING,
-                      "Vol- btn", 0);
+    logger(INFO, "[interrupt] Vol- button IRQ Number : %d\n", irq);
+    ret =
+        request_irq(irq, vol_down_btn_handler, IRQF_TRIGGER_RISING, "vol-", 0);
 }
 
 void release_interrupts(void) {
-    logger(INFO, "Releasing interrupt handlers\n");
+    logger(INFO, "[interrupt] Releasing interrupt handlers\n");
 
     free_irq(gpio_to_irq(GPIO_HOME), NULL);
     free_irq(gpio_to_irq(GPIO_BACK), NULL);
@@ -50,37 +47,37 @@ void release_interrupts(void) {
 }
 
 void sleep_app(void) {
-    logger(INFO, "Putting process into wait queue\n");
+    logger(INFO, "[interrupt] Putting process into wait queue\n");
 
     interruptible_sleep_on(&wait_queue);
 }
 
 static irqreturn_t home_btn_handler(int irq, void* dev_id) {
-    logger(INFO, "Handling interrupt by Home button\n");
+    logger(INFO, "[interrupt] Handling interrupt by Home button\n");
     start_stopwatch();
 
     return IRQ_HANDLED;
 }
 
 static irqreturn_t back_btn_handler(int irq, void* dev_id) {
-    logger(INFO, "Handling interrupt by Back button\n");
+    logger(INFO, "[interrupt] Handling interrupt by Back button\n");
     pause_stopwatch();
 
     return IRQ_HANDLED;
 }
 
 static irqreturn_t vol_up_btn_handler(int irq, void* dev_id) {
-    logger(INFO, "Handling interrupt by VOL+ button\n");
+    logger(INFO, "[interrupt] Handling interrupt by VOL+ button\n");
     reset_stopwatch();
 
     return IRQ_HANDLED;
 }
 
 static irqreturn_t vol_down_btn_handler(int irq, void* dev_id) {
-    logger(INFO, "Handling interrupt by VOL- button\n");
+    logger(INFO, "[interrupt] Handling interrupt by VOL- button\n");
     end_stopwatch();
 
-    logger(INFO, "Waking up process\n");
+    logger(INFO, "[interrupt] Waking up process\n");
     __wake_up(&wait_queue, 1, 1, NULL);
     return IRQ_HANDLED;
 }
