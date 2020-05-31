@@ -70,7 +70,6 @@ static int stopwatch_device_driver_open(struct inode *inode,
     driver_port_usage = 1;
 
     register_interrupts();
-    initialize_stopwatch();
 
     return SUCCESS;
 }
@@ -95,6 +94,7 @@ static int stopwatch_device_driver_write(struct file *file,
                                          loff_t *f_pos) {
     logger(INFO, "[stopwatch_device_driver] write\n");
 
+    initialize_stopwatch();
     sleep_app();
 
     return 0;
