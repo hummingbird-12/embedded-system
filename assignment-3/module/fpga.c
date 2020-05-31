@@ -1,5 +1,4 @@
 #include "core.h"
-#include "fpga_dot.h"
 
 static char* fnd_addr;
 
