@@ -38,7 +38,7 @@ static int __init stopwatch_device_driver_init(void) {
            DEVICE_MAJOR_NUMBER);
 
     fpga_iomap_fnd();
-    initizlize_timer();
+    initizlize_timers();
 
     return SUCCESS;
 }
@@ -52,7 +52,7 @@ static void __exit stopwatch_device_driver_exit(void) {
     logger(INFO, "[stopwatch_device_driver] exit\n");
 
     unregister_chrdev(DEVICE_MAJOR_NUMBER, DEVICE_NAME);
-    delete_timer_sync();
+    delete_timers_sync();
     fpga_iounmap_fnd();
 }
 
