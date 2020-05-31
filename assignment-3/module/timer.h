@@ -1,15 +1,13 @@
 #ifndef _TIMER_H_INCLUDED_
 #define _TIMER_H_INCLUDED_
 
-#define STATE_ROTATION 8
-
-#define STUDENT_ID "20161577"
-#define STUDENT_NAME "Inho Kim"
+#define MAX_SECONDS 3600
 
 typedef struct _STOPWATCH_STATE {
     struct timer_list timer; /* Timer to register */
-    unsigned long start_time;
+    unsigned long last_callback;
     unsigned long pause_offset;
+    int elapsed_seconds;
 } sw_state;
 
 void initialize_stopwatch(void);
