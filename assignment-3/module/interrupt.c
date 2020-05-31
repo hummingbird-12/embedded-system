@@ -8,6 +8,14 @@ static irqreturn_t back_btn_handler(int, void*);
 static irqreturn_t vol_up_btn_handler(int, void*);
 static irqreturn_t vol_down_btn_handler(int, void*);
 
+static enum _BTN_PRESS {
+    INIT,
+    HOME,
+    BACK,
+    VOL_UP,
+    VOL_DOWN,
+} last_pressed = INIT;
+
 void register_interrupts(void) {
     int irq, ret;
 
@@ -53,6 +61,11 @@ void sleep_app(void) {
 }
 
 static irqreturn_t home_btn_handler(int irq, void* dev_id) {
+    if (last_pressed == HOME) {
+        return IRQ_HANDLED;
+    }
+    last_pressed = HOME;
+
     logger(INFO, "[interrupt] Handling interrupt by Home button\n");
     start_stopwatch();
 
@@ -60,6 +73,17 @@ static irqreturn_t home_btn_handler(int irq, void* dev_id) {
 }
 
 static irqreturn_t back_btn_handler(int irq, void* dev_id) {
+    if (last_pressed == BACK) {
+        return IRQ_HANDLED;
+    }
+    if (last_pressed != HOME) {
+        logger(INFO,
+               "[interrupt] Ignoring Back button interrupt when stopwatch is "
+               "not running\n");
+        return IRQ_HANDLED;
+    }
+    last_pressed = BACK;
+
     logger(INFO, "[interrupt] Handling interrupt by Back button\n");
     pause_stopwatch();
 
@@ -67,6 +91,11 @@ static irqreturn_t back_btn_handler(int irq, void* dev_id) {
 }
 
 static irqreturn_t vol_up_btn_handler(int irq, void* dev_id) {
+    if (last_pressed == VOL_UP) {
+        return IRQ_HANDLED;
+    }
+    last_pressed = VOL_UP;
+
     logger(INFO, "[interrupt] Handling interrupt by VOL+ button\n");
     reset_stopwatch();
 
@@ -74,6 +103,11 @@ static irqreturn_t vol_up_btn_handler(int irq, void* dev_id) {
 }
 
 static irqreturn_t vol_down_btn_handler(int irq, void* dev_id) {
+    if (last_pressed == VOL_DOWN) {
+        return IRQ_HANDLED;
+    }
+    last_pressed = VOL_DOWN;
+
     logger(INFO, "[interrupt] Handling interrupt by VOL- button\n");
     end_stopwatch();
 
