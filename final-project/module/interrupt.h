@@ -13,7 +13,5 @@
 
 void register_interrupts(void);
 void release_interrupts(void);
-void sleep_app(void);
-void wake_app(void);
 
 #endif /* _INTERRUPT_H_INCLUDED_ */

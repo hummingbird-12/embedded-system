@@ -79,7 +79,7 @@ static int hangman_device_driver_open(struct inode *inode, struct file *file) {
     driver_port_usage = 1;
     selected_letter = '\0';
 
-    // register_interrupts();
+    register_interrupts();
 
     return SUCCESS;
 }
@@ -94,7 +94,7 @@ static int hangman_device_driver_release(struct inode *inode,
 
     driver_port_usage = 0;
 
-    // release_interrupts();
+    release_interrupts();
     fpga_initialize();
     delete_timer_sync();
 
@@ -112,7 +112,6 @@ static ssize_t hangman_device_driver_read(struct file *inode, char *gdata,
 
 /*
  * Called on `write()`.
- * Initializes the hangman feature and puts app process into wait queue.
  */
 static int hangman_device_driver_write(struct file *file,
                                        const char __user *buf, size_t count,
@@ -172,7 +171,6 @@ void wake_app(void) {
 void set_selected_letter(const char letter) {
     selected_letter = letter;
     fpga_dot_write(selected_letter);
-    wake_app();
 }
 
 module_init(hangman_device_driver_init);

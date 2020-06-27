@@ -1,6 +1,5 @@
 obj-m	:= hangman.o
-hangman-objs := driver.o fpga.o logger.o timer.o
-# stopwatch-objs := driver.o fpga.o interrupt.o logger.o timer.o
+hangman-objs := driver.o fpga.o interrupt.o logger.o timer.o
 
 KDIR	:=  /work/achroimx_kernel
 PWD		:= $(shell pwd)

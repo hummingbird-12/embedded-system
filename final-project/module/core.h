@@ -15,7 +15,7 @@
 
 #include "driver.h"
 #include "fpga.h"
-// #include "interrupt.h"
+#include "interrupt.h"
 #include "logger.h"
 #include "timer.h"
 

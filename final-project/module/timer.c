@@ -19,8 +19,9 @@ static void switch_timer_callback(unsigned long);
 void start_switch_timer(void) {
     logger(INFO, "[timer] starting switch timer\n");
 
-    // last_switch = -1;
-    // switch_index = 0;
+    last_switch = -1;
+    switch_index = 0;
+    fpga_dot_write('\0');
 
     add_next_switch_timer();
 }
@@ -51,9 +52,8 @@ static void switch_timer_callback(unsigned long data) {
         logger(INFO, "[timer] selected letter: %c\n",
                switch_letter[last_switch][switch_index]);
         set_selected_letter(switch_letter[last_switch][switch_index]);
-    } else {
-        add_next_switch_timer();
     }
+    add_next_switch_timer();
 }
 
 /*
@@ -71,4 +71,13 @@ void initialize_timer(void) {
 void delete_timer_sync(void) {
     logger(INFO, "[timer] deleting switch timer\n");
     del_timer_sync(&switch_timer);
+}
+
+/*
+ * Deletes the switch timer.
+ * For interrupt context.
+ */
+void delete_timer(void) {
+    logger(INFO, "[timer] deleting switch timer\n");
+    del_timer(&switch_timer);
 }

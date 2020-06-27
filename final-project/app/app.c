@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
     }
 
     // write(fd, NULL, 0);
-    for (i = 0; i < 30; i++) {
+    for (i = 0; i < 5; i++) {
         ioctl(fd, IOCTL_READ_LETTER);
         read(fd, &letter, 1);
         printf("\n[APP] read: %c\n", letter);
