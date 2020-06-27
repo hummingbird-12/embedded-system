@@ -1,0 +1,79 @@
+#ifndef _FPGA_DOT_INCLUDED_
+#define _FPGA_DOT_INCLUDED_
+
+// Constants for Dot Matrix device
+#define DOT_ROWS 10
+#define DOT_COLS 7
+#define DOT_0000 0x0  // ....
+#define DOT_0001 0x1  // ...@
+#define DOT_0010 0x2  // ..@.
+#define DOT_0011 0x3  // ..@@
+#define DOT_0100 0x4  // .@..
+#define DOT_0101 0x5  // .@.@
+#define DOT_0110 0x6  // .@@.
+#define DOT_0111 0x7  // .@@@
+#define DOT_1000 0x8  // @...
+#define DOT_1001 0x9  // @..@
+#define DOT_1010 0xA  // @.@.
+#define DOT_1011 0xB  // @.@@
+#define DOT_1100 0xC  // @@..
+#define DOT_1101 0xD  // @@.@
+#define DOT_1110 0xE  // @@@.
+#define DOT_1111 0xF  // @@@@
+
+const unsigned char fpga_dot_letters[][10] = {
+    {(DOT_0001 << 4) + DOT_1100, (DOT_0011 << 4) + DOT_0110,
+     (DOT_0110 << 4) + DOT_0011, (DOT_0110 << 4) + DOT_0011,
+     (DOT_0110 << 4) + DOT_0011, (DOT_0111 << 4) + DOT_1111,
+     (DOT_0111 << 4) + DOT_1111, (DOT_0110 << 4) + DOT_0011,
+     (DOT_0110 << 4) + DOT_0011, (DOT_0110 << 4) + DOT_0011},  // A
+    {(DOT_0111 << 4) + DOT_1100, (DOT_0110 << 4) + DOT_0111,
+     (DOT_0110 << 4) + DOT_0011, (DOT_0110 << 4) + DOT_0011,
+     (DOT_0111 << 4) + DOT_1100, (DOT_0111 << 4) + DOT_1100,
+     (DOT_0110 << 4) + DOT_0011, (DOT_0110 << 4) + DOT_0011,
+     (DOT_0110 << 4) + DOT_0111, (DOT_0111 << 4) + DOT_1100},  // B
+    {(DOT_0001 << 4) + DOT_1100, (DOT_0011 << 4) + DOT_1110,
+     (DOT_0110 << 4) + DOT_0011, (DOT_0110 << 4) + DOT_0001,
+     (DOT_0110 << 4) + DOT_0000, (DOT_0110 << 4) + DOT_0000,
+     (DOT_0110 << 4) + DOT_0001, (DOT_0110 << 4) + DOT_0011,
+     (DOT_0011 << 4) + DOT_1110, (DOT_0001 << 4) + DOT_1100},  // C
+    {(DOT_0111 << 4) + DOT_1000, (DOT_0111 << 4) + DOT_1110,
+     (DOT_0110 << 4) + DOT_0110, (DOT_0110 << 4) + DOT_0011,
+     (DOT_0110 << 4) + DOT_0011, (DOT_0110 << 4) + DOT_0011,
+     (DOT_0110 << 4) + DOT_0011, (DOT_0110 << 4) + DOT_0110,
+     (DOT_0111 << 4) + DOT_1110, (DOT_0111 << 4) + DOT_1000},  // D
+    {
+        (DOT_0111 << 4) + DOT_1000,
+        (DOT_0111 << 4) + DOT_1110,
+        (DOT_0110 << 4) + DOT_0110,
+        (DOT_0110 << 4) + DOT_0011,
+        (DOT_0110 << 4) + DOT_0011,
+        (DOT_0110 << 4) + DOT_0011,
+        (DOT_0110 << 4) + DOT_0011,
+        (DOT_0110 << 4) + DOT_0110,
+        (DOT_0111 << 4) + DOT_1110,
+        (DOT_0111 << 4) + DOT_1000,
+    },                                                             // E
+    {0x0c, 0x1c, 0x1c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x1e},  // 1
+    {0x7e, 0x7f, 0x03, 0x03, 0x3f, 0x7e, 0x60, 0x60, 0x7f, 0x7f},  // 2
+    {0xfe, 0x7f, 0x03, 0x03, 0x7f, 0x7f, 0x03, 0x03, 0x7f, 0x7e},  // 3
+    {0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x7f, 0x7f, 0x06, 0x06},  // 4
+    {0x7f, 0x7f, 0x60, 0x60, 0x7e, 0x7f, 0x03, 0x03, 0x7f, 0x7e},  // 5
+    {0x60, 0x60, 0x60, 0x60, 0x7e, 0x7f, 0x63, 0x63, 0x7f, 0x3e},  // 6
+    {0x7f, 0x7f, 0x63, 0x63, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03},  // 7
+    {0x3e, 0x7f, 0x63, 0x63, 0x7f, 0x7f, 0x63, 0x63, 0x7f, 0x3e},  // 8
+};
+
+const unsigned char fpga_dot_digit[][10] = {
+    {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},  // Blank
+    {0x0c, 0x1c, 0x1c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x1e},  // 1
+    {0x7e, 0x7f, 0x03, 0x03, 0x3f, 0x7e, 0x60, 0x60, 0x7f, 0x7f},  // 2
+    {0xfe, 0x7f, 0x03, 0x03, 0x7f, 0x7f, 0x03, 0x03, 0x7f, 0x7e},  // 3
+    {0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x7f, 0x7f, 0x06, 0x06},  // 4
+    {0x7f, 0x7f, 0x60, 0x60, 0x7e, 0x7f, 0x03, 0x03, 0x7f, 0x7e},  // 5
+    {0x60, 0x60, 0x60, 0x60, 0x7e, 0x7f, 0x63, 0x63, 0x7f, 0x3e},  // 6
+    {0x7f, 0x7f, 0x63, 0x63, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03},  // 7
+    {0x3e, 0x7f, 0x63, 0x63, 0x7f, 0x7f, 0x63, 0x63, 0x7f, 0x3e},  // 8
+};
+
+#endif /* _FPGA_DOT_INCLUDED_ */
