@@ -46,8 +46,28 @@ void fpga_iounmap_devices(void) {
 /*
  *
  */
+void fpga_initialize(void) {
+    const char text_lcd_init[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    fpga_dot_write('\0');
+    fpga_fnd_write(0);
+    fpga_led_write(0);
+    fpga_text_lcd_write(text_lcd_init);
+}
+
+/*
+ *
+ */
 void fpga_dot_write(const char letter) {
     int i;
+
+    if (letter == '\0') {
+        for (i = 0; i < 10; i++) {
+            outw(fpga_dot_empty[i] & 0x7F,
+                 (unsigned int) fpga_addr[DOT] + i * 2);
+        }
+        return;
+    }
 
     logger(INFO, "Printing '%c' into Dot Matrix device\n", letter);
 
@@ -112,7 +132,7 @@ void fpga_text_lcd_write(const char* available) {
     memset(buffer, ' ', TEXT_LCD_BUFFER_SIZE);
 
     for (i = 0; i < 13; i++) {
-        buffer[i + 2] = (available[i] != 0 ? 'A' + i : ' ');
+        buffer[i + 1] = (available[i] != 0 ? 'A' + i : ' ');
     }
 
     buffer[16] = '\0';
@@ -120,7 +140,7 @@ void fpga_text_lcd_write(const char* available) {
     buffer[16] = ' ';
 
     for (i = 13; i < 26; i++) {
-        buffer[i + 5] = (available[i] != 0 ? 'A' + i : ' ');
+        buffer[i + 4] = (available[i] != 0 ? 'A' + i : ' ');
     }
 
     logger(INFO, "Writing line 2 \"%-16s\" into Text LCD device\n",

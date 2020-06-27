@@ -13,14 +13,21 @@
 #define DEVICE_FILE(X) ("/dev/" DEVICE_NAME)
 
 int main(int argc, char* argv[]) {
+    int i;
+    char letter;
     // Open device file
-    const int fd = open(DEVICE_FILE(DEVICE_NAME), O_WRONLY);
+    const int fd = open(DEVICE_FILE(DEVICE_NAME), O_RDWR);
     if (fd == -1) {
         printf("Error opening device file\n");
         return -1;
     }
 
-    write(fd, NULL, 0);
+    // write(fd, NULL, 0);
+    for (i = 0; i < 30; i++) {
+        ioctl(fd, IOCTL_READ_LETTER);
+        read(fd, &letter, 1);
+        printf("\n[APP] read: %c\n", letter);
+    }
 
     // Close device file
     close(fd);

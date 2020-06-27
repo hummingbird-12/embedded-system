@@ -16,6 +16,8 @@ typedef enum _FPGA_DEVICES { DOT, FND, LED, SWITCH, TEXT_LCD } fpga;
 
 void fpga_iomap_devices(void);
 void fpga_iounmap_devices(void);
+void fpga_initialize(void);
+
 void fpga_dot_write(const char);
 void fpga_fnd_write(const int);
 void fpga_led_write(const int);

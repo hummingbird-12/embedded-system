@@ -17,6 +17,6 @@
 #include "fpga.h"
 // #include "interrupt.h"
 #include "logger.h"
-// #include "timer.h"
+#include "timer.h"
 
 #endif /* _CORE_H_INCLUDED_ */

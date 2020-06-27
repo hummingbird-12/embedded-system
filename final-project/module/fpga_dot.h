@@ -74,7 +74,7 @@ const unsigned char fpga_dot_letters[][10] = {
      (DOT_0111 << 4) + DOT_1000, (DOT_0011 << 4) + DOT_0000},  // J
     {(DOT_0110 << 4) + DOT_0001, (DOT_0110 << 4) + DOT_0011,
      (DOT_0110 << 4) + DOT_0110, (DOT_0110 << 4) + DOT_1100,
-     (DOT_0110 << 4) + DOT_1000, (DOT_0110 << 4) + DOT_1000,
+     (DOT_0111 << 4) + DOT_1000, (DOT_0111 << 4) + DOT_1000,
      (DOT_0110 << 4) + DOT_1100, (DOT_0110 << 4) + DOT_0110,
      (DOT_0110 << 4) + DOT_0011, (DOT_0110 << 4) + DOT_0001},  // K
     {(DOT_0110 << 4) + DOT_0000, (DOT_0110 << 4) + DOT_0000,
@@ -154,8 +154,8 @@ const unsigned char fpga_dot_letters[][10] = {
      (DOT_0111 << 4) + DOT_1111, (DOT_0111 << 4) + DOT_1111},  // Z
 };
 
-const unsigned char DOT_EMPTY[] = {DOT_0000, DOT_0000, DOT_0000, DOT_0000,
-                                   DOT_0000, DOT_0000, DOT_0000, DOT_0000,
-                                   DOT_0000, DOT_0000};
+const unsigned char fpga_dot_empty[] = {DOT_0000, DOT_0000, DOT_0000, DOT_0000,
+                                        DOT_0000, DOT_0000, DOT_0000, DOT_0000,
+                                        DOT_0000, DOT_0000};
 
 #endif /* _FPGA_DOT_INCLUDED_ */

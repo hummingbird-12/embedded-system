@@ -1,162 +1,74 @@
 #include "core.h"
 
-static sw_state stopwatch_state;
-static struct timer_list exit_timer;
+static const char switch_letter[][3] = {
+    {'A', 'B', 'C'}, {'D', 'E', 'F'}, {'G', 'H', 'I'},
+    {'J', 'K', 'L'}, {'M', 'N', 'O'}, {'P', 'Q', 'R'},
+    {'S', 'T', 'U'}, {'V', 'W', 'X'}, {'Y', 'Z', ' '},
+};
 
-static void stopwatch_timer_callback(unsigned long);
-static void add_next_stopwatch_timer(void);
-static void print_stopwatch_state(const sw_state*);
-static void exit_timer_callback(unsigned long);
+static struct timer_list switch_timer;
+static int last_switch = -1;
+static int switch_index = 0;
+
+static void add_next_switch_timer(void);
+static void switch_timer_callback(unsigned long);
 
 /*
- * Sets the initial state of the stopwatch
+ *
  */
-void initialize_stopwatch(void) {
-    logger(INFO, "[timer] initializing stopwatch\n");
+void start_switch_timer(void) {
+    logger(INFO, "[timer] starting switch timer\n");
 
-    fpga_fnd_write(0, 0);
+    // last_switch = -1;
+    // switch_index = 0;
 
-    stopwatch_state.elapsed_seconds = 0;
-    stopwatch_state.pause_offset = 0;
+    add_next_switch_timer();
 }
 
 /*
- * Starts the stopwatch.
+ * Registers next switch timer.
  */
-void start_stopwatch(void) {
-    logger(INFO, "[timer] starting stopwatch\n");
+static void add_next_switch_timer(void) {
+    switch_timer.expires = get_jiffies_64() + HZ / 7;
+    switch_timer.function = switch_timer_callback;
 
-    delete_stopwatch_timer();
-
-    add_next_stopwatch_timer();
+    add_timer(&switch_timer);
 }
 
 /*
- * Ends the stopwatch.
+ *
  */
-void end_stopwatch(void) {
-    logger(INFO, "[timer] ending stopwatch\n");
+static void switch_timer_callback(unsigned long data) {
+    const int pressed_switch = fpga_switch_read();
 
-    delete_stopwatch_timer();
-    fpga_fnd_write(0, 0);
-
-    wake_app();
+    if (pressed_switch != -1) {
+        if (pressed_switch == last_switch) {
+            switch_index = (switch_index + 1) % (last_switch == 8 ? 2 : 3);
+        } else {
+            last_switch = pressed_switch;
+            switch_index = 0;
+        }
+        logger(INFO, "[timer] selected letter: %c\n",
+               switch_letter[last_switch][switch_index]);
+        set_selected_letter(switch_letter[last_switch][switch_index]);
+    } else {
+        add_next_switch_timer();
+    }
 }
 
 /*
- * Pauses the stopwatch.
+ * Initializes the switch timer.
  */
-void pause_stopwatch(void) {
-    logger(INFO, "[timer] pausing stopwatch\n");
-
-    delete_stopwatch_timer();
-    stopwatch_state.pause_offset =
-        get_jiffies_64() - stopwatch_state.last_callback;
+void initialize_timer(void) {
+    logger(INFO, "[timer] initializing switch timer\n");
+    init_timer(&switch_timer);
 }
 
 /*
- * Resets the stopwatch.
- */
-void reset_stopwatch(void) {
-    logger(INFO, "[timer] resetting stopwatch\n");
-
-    delete_stopwatch_timer();
-    initialize_stopwatch();
-}
-
-/*
- * Registers next stopwatch timer.
- */
-static void add_next_stopwatch_timer(void) {
-    const int offset = stopwatch_state.pause_offset;
-
-    logger(INFO, "[timer] adding next timer with offset: %d\n", offset);
-
-    stopwatch_state.timer.expires = get_jiffies_64() + HZ - offset;
-    stopwatch_state.timer.data = (unsigned long) &stopwatch_state;
-    stopwatch_state.timer.function = stopwatch_timer_callback;
-
-    add_timer(&(stopwatch_state.timer));
-
-    stopwatch_state.pause_offset = 0;
-}
-
-/*
- * The callback function that is called
- * every time the stopwatch timer expires.
- */
-static void stopwatch_timer_callback(unsigned long timeout) {
-    sw_state* payload = (sw_state*) timeout;
-
-    payload->elapsed_seconds = (payload->elapsed_seconds + 1) % MAX_SECONDS;
-    payload->last_callback = get_jiffies_64();
-
-    print_stopwatch_state(payload);
-
-    add_next_stopwatch_timer();
-}
-
-/*
- * Prints the time defined by `payload` in the FND device.
- */
-static void print_stopwatch_state(const sw_state* payload) {
-    const int seconds = payload->elapsed_seconds;
-    fpga_fnd_write(seconds / 60, seconds % 60);
-}
-
-/*
- * Deletes the stopwatch timer.
- * For interrupt context.
- */
-void delete_stopwatch_timer(void) { del_timer(&(stopwatch_state.timer)); }
-
-/*
- * Starts the exit timer.
- */
-void start_exit_timer(void) {
-    delete_exit_timer();
-
-    logger(INFO, "[timer] adding exit timer\n");
-
-    exit_timer.expires = get_jiffies_64() + EXIT_TIMEOUT_SECS * HZ;
-    exit_timer.function = exit_timer_callback;
-
-    add_timer(&exit_timer);
-}
-
-/*
- * The callback function that is called
- * once the exit timer expires.
- */
-static void exit_timer_callback(unsigned long timeout) {
-    logger(INFO, "[timer] exit timer expired\n");
-
-    end_stopwatch();
-}
-
-/*
- * Deletes the exit timer.
- * For interrupt context.
- */
-void delete_exit_timer(void) {
-    logger(INFO, "[timer] deleting any previous exit timer\n");
-
-    del_timer(&exit_timer);
-}
-
-/*
- * Initializes the stopwatch and exit timers.
- */
-void initizlize_timers(void) {
-    init_timer(&(stopwatch_state.timer));
-    init_timer(&exit_timer);
-}
-
-/*
- * Deletes the stopwatch and exit timers' sync.
+ * Deletes the switch timer.
  * For non-interrupt context.
  */
-void delete_timers_sync(void) {
-    del_timer_sync(&(stopwatch_state.timer));
-    del_timer_sync(&exit_timer);
+void delete_timer_sync(void) {
+    logger(INFO, "[timer] deleting switch timer\n");
+    del_timer_sync(&switch_timer);
 }
