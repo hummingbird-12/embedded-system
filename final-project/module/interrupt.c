@@ -76,8 +76,7 @@ static irqreturn_t home_btn_handler(int irq, void* dev_id) {
     // last_pressed = HOME;
 
     logger(INFO, "[interrupt] Handling interrupt by Home button release\n");
-    delete_timer();
-    wake_app();
+    game_make_guess();
 
     return IRQ_HANDLED;
 }
@@ -108,6 +107,8 @@ static irqreturn_t vol_up_btn_handler(int irq, void* dev_id) {
     // last_pressed = VOL_UP;
 
     logger(INFO, "[interrupt] Handling interrupt by VOL+ button release\n");
+
+    game_skip_word();
 
     return IRQ_HANDLED;
 }

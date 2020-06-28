@@ -3,9 +3,26 @@
 
 wait_queue_head_t wait_queue;
 DECLARE_WAIT_QUEUE_HEAD(wait_queue);
-
 static int driver_port_usage = 0;
+
+static const char WORDS[WORDS_CNT][WORD_MAX_LEN] = {
+    "EMBEDDED",        "ANTAGONIST",   "PROTAGONIST",  "EPILOGUE",
+    "LEGACY",          "LORE",         "TIME",         "ENVIRONMENT",
+    "INTERVIEW",       "PLOT",         "ETYMOLOGY",    "ALIBI",
+    "EVIDENCE",        "INFERENCE",    "INVESTIGATOR", "MYSTERY",
+    "SLEUTH",          "SUSPECT",      "VICTIM",       "WITNESS",
+    "IDIOM",           "IMAGERY",      "METER",        "METAPHOR",
+    "SIMILE",          "ALLITERATION", "ONOMATOPOEIA", "MEMOIR",
+    "PERSONIFICATION", "REALISM"};
+static int word_index = -1;
+static char current_guess[WORD_MAX_LEN];
+
 static char selected_letter = '\0';
+static char available_letters[26];
+
+static int score = 0;
+static int bonus_score = 1;
+static int lives_left = 8;
 
 static int __init hangman_device_driver_init(void);
 static void __exit hangman_device_driver_exit(void);
@@ -17,6 +34,8 @@ static int hangman_device_driver_write(struct file *, const char __user *,
                                        size_t, loff_t *);
 static long hangman_device_driver_ioctl(struct file *, unsigned int,
                                         unsigned long);
+
+static void game_start_next_word(void);
 
 static struct file_operations device_driver_fops = {
     .owner = THIS_MODULE,
@@ -48,7 +67,7 @@ static int __init hangman_device_driver_init(void) {
            DEVICE_MAJOR_NUMBER);
 
     fpga_iomap_devices();
-    initialize_timer();
+    initialize_timers();
 
     return SUCCESS;
 }
@@ -62,7 +81,7 @@ static void __exit hangman_device_driver_exit(void) {
     logger(INFO, "[hangman_device_driver] exit\n");
 
     unregister_chrdev(DEVICE_MAJOR_NUMBER, DEVICE_NAME);
-    delete_timer_sync();
+    delete_timers_sync();
     fpga_iounmap_devices();
 }
 
@@ -76,10 +95,13 @@ static int hangman_device_driver_open(struct inode *inode, struct file *file) {
     if (driver_port_usage != 0) {
         return -EBUSY;
     }
-    driver_port_usage = 1;
-    selected_letter = '\0';
 
+    driver_port_usage = 1;
     register_interrupts();
+
+    score = 0;
+    word_index = -1;
+    game_start_next_word();
 
     return SUCCESS;
 }
@@ -96,7 +118,7 @@ static int hangman_device_driver_release(struct inode *inode,
 
     release_interrupts();
     fpga_initialize();
-    delete_timer_sync();
+    delete_timers_sync();
 
     return SUCCESS;
 }
@@ -105,6 +127,15 @@ static ssize_t hangman_device_driver_read(struct file *inode, char *gdata,
                                           size_t length, loff_t *off_what) {
     if (copy_to_user(gdata, &selected_letter, length)) {
         return -EFAULT;
+    }
+
+    if (strcmp(WORDS[word_index], current_guess) == 0) {
+        score += 100 + (bonus_score != 0 ? 50 : 0);
+        fpga_fnd_write(score);
+
+        logger(INFO, "[hangman] %s is a correct guess!\n", WORDS[word_index]);
+
+        game_start_next_word();
     }
 
     return length;
@@ -168,9 +199,86 @@ void wake_app(void) {
 /*
  *
  */
-void set_selected_letter(const char letter) {
+void game_set_selected_letter(const char letter) {
     selected_letter = letter;
     fpga_dot_write(selected_letter);
+}
+
+/*
+ *
+ */
+void game_make_guess(void) {
+    int i;
+    int good_guess = 0;
+
+    if (available_letters[selected_letter - 'A'] != 0) {
+        for (i = 0; i < strlen(WORDS[word_index]); i++) {
+            if (WORDS[word_index][i] == selected_letter) {
+                current_guess[i] = selected_letter;
+                good_guess = 1;
+            }
+        }
+    }
+
+    logger(INFO, "[hangman] attempted guess %c\n", selected_letter);
+    logger(INFO, "[hangman] current guess %s for word %s\n", current_guess,
+           WORDS[word_index]);
+
+    if (good_guess == 0) {
+        lives_left--;
+        fpga_led_write(lives_left);
+    }
+
+    available_letters[selected_letter - 'A'] = 0;
+    fpga_text_lcd_write(available_letters);
+
+    delete_timers();
+    wake_app();
+}
+
+/*
+ *
+ */
+void game_skip_word(void) {
+    logger(INFO, "[hangman] skipping word: %s\n", WORDS[word_index]);
+
+    game_start_next_word();
+}
+
+/*
+ *
+ */
+void game_expire_bonus(void) {
+    logger(INFO, "[hangman] bonus score time expired\n");
+    bonus_score = 0;
+}
+
+/*
+ *
+ */
+void game_exit(void) {}
+
+/*
+ *
+ */
+static void game_start_next_word(void) {
+    word_index = (word_index + 1) % WORDS_CNT;
+
+    logger(INFO, "[hangman] new hangman word: %s\n", WORDS[word_index]);
+
+    selected_letter = '\0';
+    memset(available_letters, 1, 26);
+    memset(current_guess, '\0', WORD_MAX_LEN);
+    memset(current_guess, ' ', strlen(WORDS[word_index]));
+
+    lives_left = MAX_LIVES;
+    bonus_score = 1;
+    delete_score_timer();
+    start_score_timer(strlen(WORDS[word_index]) * BONUS_TIME_PER_CHAR);
+
+    fpga_dot_write('\0');
+    fpga_led_write(lives_left);
+    fpga_text_lcd_write(available_letters);
 }
 
 module_init(hangman_device_driver_init);

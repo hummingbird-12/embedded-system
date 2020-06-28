@@ -7,11 +7,16 @@ static const char switch_letter[][3] = {
 };
 
 static struct timer_list switch_timer;
+static struct timer_list score_timer;
+
 static int last_switch = -1;
 static int switch_index = 0;
 
 static void add_next_switch_timer(void);
 static void switch_timer_callback(unsigned long);
+
+// static void add_next_switch_timer(void);
+static void score_timer_callback(unsigned long);
 
 /*
  *
@@ -51,33 +56,61 @@ static void switch_timer_callback(unsigned long data) {
         }
         logger(INFO, "[timer] selected letter: %c\n",
                switch_letter[last_switch][switch_index]);
-        set_selected_letter(switch_letter[last_switch][switch_index]);
+        game_set_selected_letter(switch_letter[last_switch][switch_index]);
     }
     add_next_switch_timer();
 }
 
 /*
- * Initializes the switch timer.
+ *
  */
-void initialize_timer(void) {
-    logger(INFO, "[timer] initializing switch timer\n");
-    init_timer(&switch_timer);
+void start_score_timer(const int seconds) {
+    logger(INFO, "[timer] starting score timer for %d seconds\n", seconds);
+
+    score_timer.expires = get_jiffies_64() + HZ * seconds;
+    score_timer.function = score_timer_callback;
+
+    add_timer(&score_timer);
 }
 
 /*
- * Deletes the switch timer.
+ *
+ */
+void delete_score_timer(void) {
+    logger(INFO, "[timer] deleting score timer\n");
+    del_timer_sync(&score_timer);
+}
+
+/*
+ *
+ */
+static void score_timer_callback(unsigned long data) { game_expire_bonus(); }
+
+/*
+ * Initializes the timers.
+ */
+void initialize_timers(void) {
+    logger(INFO, "[timer] initializing timers\n");
+    init_timer(&switch_timer);
+    init_timer(&score_timer);
+}
+
+/*
+ * Deletes the timers.
  * For non-interrupt context.
  */
-void delete_timer_sync(void) {
-    logger(INFO, "[timer] deleting switch timer\n");
+void delete_timers_sync(void) {
+    logger(INFO, "[timer] deleting timers\n");
     del_timer_sync(&switch_timer);
+    del_timer_sync(&score_timer);
 }
 
 /*
- * Deletes the switch timer.
+ * Deletes the timers.
  * For interrupt context.
  */
-void delete_timer(void) {
-    logger(INFO, "[timer] deleting switch timer\n");
+void delete_timers(void) {
+    logger(INFO, "[timer] deleting timers (sync)\n");
     del_timer(&switch_timer);
+    del_timer(&score_timer);
 }
