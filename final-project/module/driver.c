@@ -30,8 +30,6 @@ static int hangman_device_driver_open(struct inode *, struct file *);
 static int hangman_device_driver_release(struct inode *, struct file *);
 static ssize_t hangman_device_driver_read(struct file *, char *, size_t,
                                           loff_t *);
-static int hangman_device_driver_write(struct file *, const char __user *,
-                                       size_t, loff_t *);
 static long hangman_device_driver_ioctl(struct file *, unsigned int,
                                         unsigned long);
 
@@ -42,7 +40,6 @@ static struct file_operations device_driver_fops = {
     .open = hangman_device_driver_open,
     .release = hangman_device_driver_release,
     .read = hangman_device_driver_read,
-    .write = hangman_device_driver_write,
     .unlocked_ioctl = hangman_device_driver_ioctl,
 };
 
@@ -155,18 +152,6 @@ static ssize_t hangman_device_driver_read(struct file *inode, char *gdata,
     }
 
     return length;
-}
-
-/*
- * Called on `write()`.
- */
-static int hangman_device_driver_write(struct file *file,
-                                       const char __user *buf, size_t count,
-                                       loff_t *f_pos) {
-    logger(INFO, "[hangman_device_driver] write\n");
-    // sleep_app();
-
-    return 0;
 }
 
 /*
