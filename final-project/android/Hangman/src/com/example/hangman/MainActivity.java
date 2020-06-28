@@ -35,9 +35,6 @@ public class MainActivity extends Activity {
 	 */
 	private Handler mainHandler = new Handler() {
 		public void handleMessage(Message msg) {
-			if (msg.what == 0 && msg.arg1 == 1) {
-				exitHangman();
-			}
 			Bundle bundle;
 			String _word;
 			int _score;
