@@ -14,4 +14,7 @@
 void register_interrupts(void);
 void release_interrupts(void);
 
+void enable_input(void);
+void disable_input(void);
+
 #endif /* _INTERRUPT_H_INCLUDED_ */

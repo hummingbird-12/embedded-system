@@ -24,7 +24,7 @@ void fpga_iomap_devices(void) {
 
     for (dev = 0; dev < FPGA_DEVICES_CNT; dev++) {
         if (fpga_addr[dev] == NULL) {
-            logger(ERROR, "Failed to IO-map device %s\n",
+            logger(ERROR, "[fpga] failed to IO-map device %s\n",
                    FPGA_DEVICES_STR[dev]);
         }
     }
@@ -69,7 +69,7 @@ void fpga_dot_write(const char letter) {
         return;
     }
 
-    logger(INFO, "Printing '%c' into Dot Matrix device\n", letter);
+    logger(INFO, "[fpga] printing '%c' into Dot Matrix device\n", letter);
 
     for (i = 0; i < 10; i++) {
         outw(fpga_dot_letters[letter - 'A'][i] & 0x7F,
@@ -84,7 +84,7 @@ void fpga_fnd_write(const int score) {
     int i, tmp = score;
     unsigned short value = 0;
 
-    logger(INFO, "[fpga] Printing score %04d into FND device\n", score);
+    logger(INFO, "[fpga] printing score %04d into FND device\n", score);
 
     for (i = 0; i < 4; i++, tmp /= 10) {
         value += (tmp % 10) << (4 * i);
@@ -99,7 +99,7 @@ void fpga_fnd_write(const int score) {
 void fpga_led_write(const int lives) {
     const unsigned short value = ((lives > 0) ? (0xFF << (8 - lives)) : 0);
 
-    logger(INFO, "Turning on %d LEDs of LED device\n", lives);
+    logger(INFO, "[fpga] turning on %d LEDs of LED device\n", lives);
 
     outw(value, (unsigned int) fpga_addr[LED]);
 }
@@ -136,14 +136,15 @@ void fpga_text_lcd_write(const char* available) {
     }
 
     buffer[16] = '\0';
-    logger(INFO, "Writing line 1 \"%-16s\" into Text LCD device\n", buffer);
+    logger(INFO, "[fpga] writing line 1 \"%-16s\" into Text LCD device\n",
+           buffer);
     buffer[16] = ' ';
 
     for (i = 13; i < 26; i++) {
         buffer[i + 4] = (available[i] != 0 ? 'A' + i : ' ');
     }
 
-    logger(INFO, "Writing line 2 \"%-16s\" into Text LCD device\n",
+    logger(INFO, "[fpga] writing line 2 \"%-16s\" into Text LCD device\n",
            buffer + 16);
 
     for (i = 0; i < TEXT_LCD_BUFFER_SIZE; i += 2) {

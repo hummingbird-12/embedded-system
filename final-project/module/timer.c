@@ -32,6 +32,16 @@ void start_switch_timer(void) {
 }
 
 /*
+ * Deletes the switch timer.
+ * For interrupt context.
+ */
+void delete_switch_timer(void) {
+    logger(INFO, "[timer] deleting switch timer\n");
+
+    del_timer(&switch_timer);
+}
+
+/*
  * Registers next switch timer.
  */
 static void add_next_switch_timer(void) {
@@ -39,6 +49,7 @@ static void add_next_switch_timer(void) {
     switch_timer.function = switch_timer_callback;
 
     add_timer(&switch_timer);
+    enable_input();
 }
 
 /*
@@ -46,6 +57,7 @@ static void add_next_switch_timer(void) {
  */
 static void switch_timer_callback(unsigned long data) {
     const int pressed_switch = fpga_switch_read();
+    disable_input();
 
     if (pressed_switch != -1) {
         if (pressed_switch == last_switch) {

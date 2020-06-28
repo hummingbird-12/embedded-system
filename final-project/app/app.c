@@ -11,10 +11,15 @@
 #include "driver_specs.h"
 
 #define DEVICE_FILE(X) ("/dev/" DEVICE_NAME)
+#define WORD_MAX_LEN 20
+
+struct _payload {
+    char word[WORD_MAX_LEN];
+    int status;
+    int score;
+} payload;
 
 int main(int argc, char* argv[]) {
-    // int i;
-    char letter;
     // Open device file
     const int fd = open(DEVICE_FILE(DEVICE_NAME), O_RDWR);
     if (fd == -1) {
@@ -22,12 +27,11 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    // write(fd, NULL, 0);
     do {
         ioctl(fd, IOCTL_READ_LETTER);
-        read(fd, &letter, 1);
-        printf("\n[APP] read: %c\n", letter);
-    } while (letter != '\0');
+        read(fd, &payload, sizeof(payload));
+        printf("\n[APP] read: %s\tscore %d\n", payload.word, payload.score);
+    } while (payload.status != -1);
 
     // Close device file
     close(fd);

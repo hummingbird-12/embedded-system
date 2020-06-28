@@ -5,15 +5,7 @@ static irqreturn_t back_btn_handler(int, void*);
 static irqreturn_t vol_up_btn_handler(int, void*);
 static irqreturn_t vol_down_btn_handler(int, void*);
 
-// static enum _BTN_PRESS {
-//     INIT,
-//     HOME,
-//     BACK,
-//     VOL_UP,
-//     VOL_DOWN,
-// } last_pressed =
-//     INIT;  // Pressed button tracker to prevent consecutive pressing
-
+static int input_enabled = 0;
 static int is_vol_down_pressing = 0;  // Flag showing Vol- button's status
 
 /*
@@ -49,8 +41,8 @@ void register_interrupts(void) {
                       IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING, NAME_VOLDOWN,
                       0);
 
-    // last_pressed = INIT;
     is_vol_down_pressing = 0;
+    input_enabled = 0;
 }
 
 /*
@@ -69,11 +61,9 @@ void release_interrupts(void) {
  * Interrupt handler for Home button.
  */
 static irqreturn_t home_btn_handler(int irq, void* dev_id) {
-    // Ignore consecutive pressing
-    // if (last_pressed == HOME) {
-    //     return IRQ_HANDLED;
-    // }
-    // last_pressed = HOME;
+    if (input_enabled == 0) {
+        return IRQ_HANDLED;
+    }
 
     logger(INFO, "[interrupt] Handling interrupt by Home button release\n");
     game_make_guess();
@@ -85,12 +75,6 @@ static irqreturn_t home_btn_handler(int irq, void* dev_id) {
  * Interrupt handler for Back button.
  */
 static irqreturn_t back_btn_handler(int irq, void* dev_id) {
-    // Ignore consecutive pressing
-    // if (last_pressed == BACK) {
-    //     return IRQ_HANDLED;
-    // }
-    // last_pressed = BACK;
-
     logger(INFO, "[interrupt] Handling interrupt by Back button release\n");
 
     return IRQ_HANDLED;
@@ -100,12 +84,6 @@ static irqreturn_t back_btn_handler(int irq, void* dev_id) {
  * Interrupt handler for Vol+ button.
  */
 static irqreturn_t vol_up_btn_handler(int irq, void* dev_id) {
-    // Ignore consecutive pressing
-    // if (last_pressed == VOL_UP) {
-    //     return IRQ_HANDLED;
-    // }
-    // last_pressed = VOL_UP;
-
     logger(INFO, "[interrupt] Handling interrupt by VOL+ button release\n");
 
     game_skip_word();
@@ -126,10 +104,19 @@ static irqreturn_t vol_down_btn_handler(int irq, void* dev_id) {
     else {
         logger(INFO, "[interrupt] Handling interrupt by VOL- button release\n");
         delete_exit_timer();
-        // last_pressed = VOL_DOWN;
     }
 
     is_vol_down_pressing = 1 - is_vol_down_pressing;
 
     return IRQ_HANDLED;
 }
+
+/*
+ *
+ */
+void enable_input(void) { input_enabled = 1; }
+
+/*
+ *
+ */
+void disable_input(void) { input_enabled = 0; }

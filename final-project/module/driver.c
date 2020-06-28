@@ -125,17 +125,33 @@ static int hangman_device_driver_release(struct inode *inode,
 
 static ssize_t hangman_device_driver_read(struct file *inode, char *gdata,
                                           size_t length, loff_t *off_what) {
-    if (copy_to_user(gdata, &selected_letter, length)) {
-        return -EFAULT;
-    }
+    struct _payload {
+        char word[WORD_MAX_LEN];
+        int status;
+        int score;
+    } payload;
+    memset(payload.word, '\0', WORD_MAX_LEN);
 
-    if (strcmp(WORDS[word_index], current_guess) == 0) {
+    if (selected_letter == '\0') {
+        payload.status = STATUS_EXIT;
+    } else if (strcmp(WORDS[word_index], current_guess) == 0) {
+        logger(INFO, "[hangman] %s is a correct guess!\n", WORDS[word_index]);
+
+        strncpy(payload.word, WORDS[word_index], strlen(WORDS[word_index]));
+        payload.status = STATUS_GUESSED;
+
         score += 100 + (bonus_score != 0 ? 50 : 0);
         fpga_fnd_write(score);
 
-        logger(INFO, "[hangman] %s is a correct guess!\n", WORDS[word_index]);
-
         game_start_next_word();
+    } else {
+        strncpy(payload.word, current_guess, strlen(current_guess));
+        payload.status = STATUS_INPUT;
+    }
+    payload.score = score;
+
+    if (copy_to_user(gdata, &payload, length)) {
+        return -EFAULT;
     }
 
     return length;
@@ -227,12 +243,17 @@ void game_make_guess(void) {
     if (good_guess == 0) {
         lives_left--;
         fpga_led_write(lives_left);
+
+        if (lives_left <= 0) {
+            game_exit();
+            return;
+        }
     }
 
     available_letters[selected_letter - 'A'] = 0;
     fpga_text_lcd_write(available_letters);
 
-    delete_timers();
+    delete_switch_timer();
     wake_app();
 }
 
