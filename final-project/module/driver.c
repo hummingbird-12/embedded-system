@@ -6,7 +6,7 @@ DECLARE_WAIT_QUEUE_HEAD(wait_queue);
 static int driver_port_usage = 0;
 
 static const char WORDS[WORDS_CNT][WORD_MAX_LEN] = {
-    "EMBEDDED",        "ANTAGONIST",   "PROTAGONIST",  "EPILOGUE",
+    "EMBEDDED",        "ARM",          "PROTAGONIST",  "EPILOGUE",
     "LEGACY",          "LORE",         "TIME",         "ENVIRONMENT",
     "INTERVIEW",       "PLOT",         "ETYMOLOGY",    "ALIBI",
     "EVIDENCE",        "INFERENCE",    "INVESTIGATOR", "MYSTERY",
