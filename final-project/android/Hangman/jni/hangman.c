@@ -30,46 +30,55 @@ jint JNICALL Java_com_example_hangman_MainActivity_openDevice(JNIEnv *env,
 	return 1;
 }
 
-void JNICALL Java_com_example_hangman_MainActivity_startHangman(JNIEnv *env, jobject this, jint fd) {
+void JNICALL Java_com_example_hangman_MainActivity_startHangman(JNIEnv *env,
+		jobject this, jint fd, jobject ret) {
 	struct _payload {
 		char word[WORD_MAX_LEN];
 		int status;
 		int score;
 	} payload;
 
-	jclass thisClass = (*env)->GetObjectClass(env, this);
-	jmethodID jupdatelastGame = (*env)->GetMethodID(env, thisClass, "updatelastGame", "(Ljava/lang/String;)V");
-	jmethodID jupdateGameList = (*env)->GetMethodID(env, thisClass, "updateGameList", "(Ljava/lang/String;I)V");
-	jmethodID jexitHangman = (*env)->GetMethodID(env, thisClass, "exitHangman", "()V");
+	jclass retClass = (*env)->GetObjectClass(env, ret);
+	jfieldID jwordID = (*env)->GetFieldID(env, retClass, "word", "Ljava/lang/String;");
+	jfieldID jstatusID = (*env)->GetFieldID(env, retClass, "status", "I");
+	jfieldID jscoreID = (*env)->GetFieldID(env, retClass, "score", "I");
+
 	jstring word;
 
-	while(1) {
-		ioctl(fd, IOCTL_READ_LETTER);
-		read(fd, &payload, sizeof(payload));
+	ioctl(fd, IOCTL_READ_LETTER);
+	read(fd, &payload, sizeof(payload));
 
-		word = (*env)->NewStringUTF(env, payload.word);
+	word = (*env)->NewStringUTF(env, payload.word);
 
-		switch(payload.status) {
-		case STATUS_INPUT:
-			(*env)->CallVoidMethod(env, this, jupdatelastGame, word);
-			break;
-		case STATUS_GUESSED:
-			(*env)->CallVoidMethod(env, this, jupdateGameList, word, payload.score);
-			break;
-		case STATUS_EXIT:
-//			(*env)->CallVoidMethod(env, this, jexitHangman);
-			return;
-			break;
-		default:
-			LOGV("UNKOWN STATUS");
-			break;
-		}
+	switch (payload.status) {
+	case STATUS_INPUT:
+		LOGV("[native] input: %s", payload.word);
+
+		(*env)->SetIntField(env, ret, jstatusID, payload.status);
+		(*env)->SetObjectField(env, ret, jwordID, word);
+		break;
+	case STATUS_GUESSED:
+		LOGV("[native] guess word: %s", payload.word);
+		LOGV("[native] guess score: %d", payload.score);
+
+		(*env)->SetIntField(env, ret, jstatusID, payload.status);
+		(*env)->SetObjectField(env, ret, jwordID, word);
+		(*env)->SetIntField(env, ret, jscoreID, payload.score);
+		break;
+	case STATUS_EXIT:
+		LOGV("[native] exit");
+
+		(*env)->SetIntField(env, ret, jstatusID, payload.status);
+		break;
+	default:
+		LOGV("UNKNOWN STATUS");
+		break;
 	}
 
 	return;
 }
 
 void JNICALL Java_com_example_hangman_MainActivity_closeDevice(JNIEnv *env, jobject this, jint fd) {
-	 // Close device file
+	// Close device file
 	close(fd);
 }

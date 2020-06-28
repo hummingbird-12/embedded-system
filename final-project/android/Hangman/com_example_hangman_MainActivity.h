@@ -18,10 +18,10 @@ JNIEXPORT jint JNICALL Java_com_example_hangman_MainActivity_openDevice
 /*
  * Class:     com_example_hangman_MainActivity
  * Method:    startHangman
- * Signature: (I)V
+ * Signature: (ILcom/example/hangman/MainActivity/Payload;)V
  */
 JNIEXPORT void JNICALL Java_com_example_hangman_MainActivity_startHangman
-  (JNIEnv *, jobject, jint);
+  (JNIEnv *, jobject, jint, jobject);
 
 /*
  * Class:     com_example_hangman_MainActivity
