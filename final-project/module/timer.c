@@ -8,15 +8,15 @@ static const char switch_letter[][3] = {
 
 static struct timer_list switch_timer;
 static struct timer_list score_timer;
+static struct timer_list exit_timer;
 
 static int last_switch = -1;
 static int switch_index = 0;
 
 static void add_next_switch_timer(void);
 static void switch_timer_callback(unsigned long);
-
-// static void add_next_switch_timer(void);
 static void score_timer_callback(unsigned long);
+static void exit_timer_callback(unsigned long);
 
 /*
  *
@@ -87,12 +87,47 @@ void delete_score_timer(void) {
 static void score_timer_callback(unsigned long data) { game_expire_bonus(); }
 
 /*
+ * Starts the exit timer.
+ */
+void start_exit_timer(void) {
+    delete_exit_timer();
+
+    logger(INFO, "[timer] adding exit timer\n");
+
+    exit_timer.expires = get_jiffies_64() + EXIT_TIMEOUT_SECS * HZ;
+    exit_timer.function = exit_timer_callback;
+
+    add_timer(&exit_timer);
+}
+
+/*
+ * The callback function that is called
+ * once the exit timer expires.
+ */
+static void exit_timer_callback(unsigned long data) {
+    logger(INFO, "[timer] exit timer expired\n");
+
+    game_exit();
+}
+
+/*
+ * Deletes the exit timer.
+ * For interrupt context.
+ */
+void delete_exit_timer(void) {
+    logger(INFO, "[timer] deleting any previous exit timer\n");
+
+    del_timer(&exit_timer);
+}
+
+/*
  * Initializes the timers.
  */
 void initialize_timers(void) {
     logger(INFO, "[timer] initializing timers\n");
     init_timer(&switch_timer);
     init_timer(&score_timer);
+    init_timer(&exit_timer);
 }
 
 /*
@@ -103,6 +138,7 @@ void delete_timers_sync(void) {
     logger(INFO, "[timer] deleting timers\n");
     del_timer_sync(&switch_timer);
     del_timer_sync(&score_timer);
+    del_timer_sync(&exit_timer);
 }
 
 /*
@@ -113,4 +149,5 @@ void delete_timers(void) {
     logger(INFO, "[timer] deleting timers (sync)\n");
     del_timer(&switch_timer);
     del_timer(&score_timer);
+    del_timer(&exit_timer);
 }

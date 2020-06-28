@@ -13,7 +13,7 @@
 #define DEVICE_FILE(X) ("/dev/" DEVICE_NAME)
 
 int main(int argc, char* argv[]) {
-    int i;
+    // int i;
     char letter;
     // Open device file
     const int fd = open(DEVICE_FILE(DEVICE_NAME), O_RDWR);
@@ -23,11 +23,11 @@ int main(int argc, char* argv[]) {
     }
 
     // write(fd, NULL, 0);
-    for (i = 0; i < 5; i++) {
+    do {
         ioctl(fd, IOCTL_READ_LETTER);
         read(fd, &letter, 1);
         printf("\n[APP] read: %c\n", letter);
-    }
+    } while (letter != '\0');
 
     // Close device file
     close(fd);

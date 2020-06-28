@@ -120,12 +120,12 @@ static irqreturn_t vol_down_btn_handler(int irq, void* dev_id) {
     // Vol- is pressed
     if (is_vol_down_pressing == 0) {
         logger(INFO, "[interrupt] Handling interrupt by VOL- button press\n");
-        // start_exit_timer();
+        start_exit_timer();
     }
     // Vol- is released
     else {
         logger(INFO, "[interrupt] Handling interrupt by VOL- button release\n");
-        // delete_exit_timer();
+        delete_exit_timer();
         // last_pressed = VOL_DOWN;
     }
 

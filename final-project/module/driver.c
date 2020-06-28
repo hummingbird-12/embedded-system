@@ -256,7 +256,14 @@ void game_expire_bonus(void) {
 /*
  *
  */
-void game_exit(void) {}
+void game_exit(void) {
+    logger(INFO, "[hangman] exit game\n");
+
+    selected_letter = '\0';
+
+    delete_timers();
+    wake_app();
+}
 
 /*
  *
