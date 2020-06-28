@@ -1,7 +1,6 @@
 #include "core.h"
 
 static irqreturn_t home_btn_handler(int, void*);
-static irqreturn_t back_btn_handler(int, void*);
 static irqreturn_t vol_up_btn_handler(int, void*);
 static irqreturn_t vol_down_btn_handler(int, void*);
 
@@ -19,12 +18,6 @@ void register_interrupts(void) {
     irq = gpio_to_irq(GPIO_HOME);
     logger(INFO, "[interrupt] Home button IRQ Number : %d\n", irq);
     ret = request_irq(irq, home_btn_handler, IRQF_TRIGGER_RISING, NAME_HOME, 0);
-
-    // Register BACK button interrupt
-    gpio_direction_input(GPIO_BACK);
-    irq = gpio_to_irq(GPIO_BACK);
-    logger(INFO, "[interrupt] Back button IRQ Number : %d\n", irq);
-    ret = request_irq(irq, back_btn_handler, IRQF_TRIGGER_RISING, NAME_BACK, 0);
 
     // Register VOL+ button interrupt
     gpio_direction_input(GPIO_VOLUP);
@@ -52,7 +45,6 @@ void release_interrupts(void) {
     logger(INFO, "[interrupt] Releasing interrupt handlers\n");
 
     free_irq(gpio_to_irq(GPIO_HOME), NULL);
-    free_irq(gpio_to_irq(GPIO_BACK), NULL);
     free_irq(gpio_to_irq(GPIO_VOLUP), NULL);
     free_irq(gpio_to_irq(GPIO_VOLDOWN), NULL);
 }
@@ -67,15 +59,6 @@ static irqreturn_t home_btn_handler(int irq, void* dev_id) {
 
     logger(INFO, "[interrupt] Handling interrupt by Home button release\n");
     game_make_guess();
-
-    return IRQ_HANDLED;
-}
-
-/*
- * Interrupt handler for Back button.
- */
-static irqreturn_t back_btn_handler(int irq, void* dev_id) {
-    logger(INFO, "[interrupt] Handling interrupt by Back button release\n");
 
     return IRQ_HANDLED;
 }
