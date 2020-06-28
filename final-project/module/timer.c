@@ -90,7 +90,7 @@ void start_score_timer(const int seconds) {
  */
 void delete_score_timer(void) {
     logger(INFO, "[timer] deleting score timer\n");
-    del_timer_sync(&score_timer);
+    del_timer(&score_timer);
 }
 
 /*
