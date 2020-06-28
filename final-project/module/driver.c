@@ -140,7 +140,7 @@ static ssize_t hangman_device_driver_read(struct file *inode, char *gdata,
         strncpy(payload.word, WORDS[word_index], strlen(WORDS[word_index]));
         payload.status = STATUS_GUESSED;
 
-        score += 100 + (bonus_score != 0 ? 50 : 0);
+        score += 10 * strlen(WORDS[word_index]) + (bonus_score != 0 ? 50 : 0);
         fpga_fnd_write(score);
 
         game_start_next_word();
