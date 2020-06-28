@@ -44,7 +44,7 @@ void fpga_iounmap_devices(void) {
 }
 
 /*
- *
+ * Initializes the FPGA devices.
  */
 void fpga_initialize(void) {
     const char text_lcd_init[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -56,7 +56,7 @@ void fpga_initialize(void) {
 }
 
 /*
- *
+ * Prints the given `letter` in the Dot Matrix device.
  */
 void fpga_dot_write(const char letter) {
     int i;
@@ -78,7 +78,7 @@ void fpga_dot_write(const char letter) {
 }
 
 /*
- *
+ * Prints the given `score` in the FND device.
  */
 void fpga_fnd_write(const int score) {
     int i, tmp = score;
@@ -94,7 +94,7 @@ void fpga_fnd_write(const int score) {
 }
 
 /*
- *
+ * Turns on LEDs indicating how many `lives` are left.
  */
 void fpga_led_write(const int lives) {
     const unsigned short value = ((lives > 0) ? (0xFF << (8 - lives)) : 0);
@@ -105,7 +105,7 @@ void fpga_led_write(const int lives) {
 }
 
 /*
- *
+ * Reads switch inputs.
  */
 int fpga_switch_read(void) {
     int i;
@@ -122,7 +122,7 @@ int fpga_switch_read(void) {
 }
 
 /*
- *
+ * Prints the available alphabet letters in the Text LCD device.
  */
 void fpga_text_lcd_write(const char* available) {
     int i;

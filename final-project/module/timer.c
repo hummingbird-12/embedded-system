@@ -19,7 +19,7 @@ static void score_timer_callback(unsigned long);
 static void exit_timer_callback(unsigned long);
 
 /*
- *
+ * Starts the switch timer.
  */
 void start_switch_timer(void) {
     logger(INFO, "[timer] starting switch timer\n");
@@ -53,7 +53,7 @@ static void add_next_switch_timer(void) {
 }
 
 /*
- *
+ * Callback for switch timer.
  */
 static void switch_timer_callback(unsigned long data) {
     const int pressed_switch = fpga_switch_read();
@@ -74,7 +74,7 @@ static void switch_timer_callback(unsigned long data) {
 }
 
 /*
- *
+ * Starts the score timer.
  */
 void start_score_timer(const int seconds) {
     logger(INFO, "[timer] starting score timer for %d seconds\n", seconds);
@@ -86,7 +86,8 @@ void start_score_timer(const int seconds) {
 }
 
 /*
- *
+ * Deletes the score timer.
+ * For interrupt context.
  */
 void delete_score_timer(void) {
     logger(INFO, "[timer] deleting score timer\n");
@@ -94,7 +95,7 @@ void delete_score_timer(void) {
 }
 
 /*
- *
+ * Callback for score timer.
  */
 static void score_timer_callback(unsigned long data) { game_expire_bonus(); }
 
@@ -113,8 +114,7 @@ void start_exit_timer(void) {
 }
 
 /*
- * The callback function that is called
- * once the exit timer expires.
+ * Callback for exit timer.
  */
 static void exit_timer_callback(unsigned long data) {
     logger(INFO, "[timer] exit timer expired\n");

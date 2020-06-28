@@ -120,6 +120,10 @@ static int hangman_device_driver_release(struct inode *inode,
     return SUCCESS;
 }
 
+/*
+ * Called on `read()`.
+ * Provides inputs and status information to user.
+ */
 static ssize_t hangman_device_driver_read(struct file *inode, char *gdata,
                                           size_t length, loff_t *off_what) {
     struct _payload {
@@ -129,9 +133,12 @@ static ssize_t hangman_device_driver_read(struct file *inode, char *gdata,
     } payload;
     memset(payload.word, '\0', WORD_MAX_LEN);
 
+    // Exit hangman game
     if (selected_letter == '\0') {
         payload.status = STATUS_EXIT;
-    } else if (strcmp(WORDS[word_index], current_guess) == 0) {
+    }
+    // Word is guessed correctly
+    else if (strcmp(WORDS[word_index], current_guess) == 0) {
         logger(INFO, "[hangman] %s is a correct guess!\n", WORDS[word_index]);
 
         strncpy(payload.word, WORDS[word_index], strlen(WORDS[word_index]));
@@ -141,7 +148,9 @@ static ssize_t hangman_device_driver_read(struct file *inode, char *gdata,
         fpga_fnd_write(score);
 
         game_start_next_word();
-    } else {
+    }
+    // A guess attempt was made
+    else {
         strncpy(payload.word, current_guess, strlen(current_guess));
         payload.status = STATUS_INPUT;
     }
@@ -155,13 +164,14 @@ static ssize_t hangman_device_driver_read(struct file *inode, char *gdata,
 }
 
 /*
- *
+ * Called on `ioctl()`.
+ * User will wait until it is awakened by the module.
  */
 static long hangman_device_driver_ioctl(struct file *file,
                                         unsigned int ioctl_num,
                                         unsigned long ioctl_param) {
     switch (ioctl_num) {
-        case IOCTL_READ_LETTER:  // IOCTL to read chosen letter
+        case IOCTL_READ_LETTER:
             logger(INFO, "[hangman_device_driver] ioctl: IOCTL_READ_LETTER\n");
 
             start_switch_timer();
@@ -198,7 +208,7 @@ void wake_app(void) {
 }
 
 /*
- *
+ * Stores the current selected letter by switch input.
  */
 void game_set_selected_letter(const char letter) {
     selected_letter = letter;
@@ -206,12 +216,13 @@ void game_set_selected_letter(const char letter) {
 }
 
 /*
- *
+ * Attempts to make guess with the currently selected letter.
  */
 void game_make_guess(void) {
     int i;
     int good_guess = 0;
 
+    // Check if letter is not used and part of the answer
     if (available_letters[selected_letter - 'A'] != 0) {
         for (i = 0; i < strlen(WORDS[word_index]); i++) {
             if (WORDS[word_index][i] == selected_letter) {
@@ -225,10 +236,12 @@ void game_make_guess(void) {
     logger(INFO, "[hangman] current guess %s for word %s\n", current_guess,
            WORDS[word_index]);
 
+    // Letter was NOT a good attempt
     if (good_guess == 0) {
         lives_left--;
         fpga_led_write(lives_left);
 
+        // No lives left
         if (lives_left <= 0) {
             game_exit();
             return;
@@ -243,7 +256,7 @@ void game_make_guess(void) {
 }
 
 /*
- *
+ * Skips current word.
  */
 void game_skip_word(void) {
     logger(INFO, "[hangman] skipping word: %s\n", WORDS[word_index]);
@@ -252,7 +265,7 @@ void game_skip_word(void) {
 }
 
 /*
- *
+ * Expires the bonus points for current word.
  */
 void game_expire_bonus(void) {
     logger(INFO, "[hangman] bonus score time expired\n");
@@ -260,7 +273,7 @@ void game_expire_bonus(void) {
 }
 
 /*
- *
+ * Exits hangman game.
  */
 void game_exit(void) {
     logger(INFO, "[hangman] exit game\n");
@@ -272,7 +285,7 @@ void game_exit(void) {
 }
 
 /*
- *
+ * Advances game to next word.
  */
 static void game_start_next_word(void) {
     word_index = (word_index + 1) % WORDS_CNT;

@@ -112,11 +112,12 @@ static irqreturn_t vol_down_btn_handler(int irq, void* dev_id) {
 }
 
 /*
- *
+ * Accept interrupts.
  */
 void enable_input(void) { input_enabled = 1; }
 
 /*
- *
+ * Reject interrupts.
+ * Avoids double submissions.
  */
 void disable_input(void) { input_enabled = 0; }
