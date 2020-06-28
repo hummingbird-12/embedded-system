@@ -17,19 +17,23 @@
 #define LOG_TAG "HANGMAN"
 #define LOGV(...)   __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__)
 
+/*
+ * Opens device file and returns the file descriptor.
+ */
 jint JNICALL Java_com_example_hangman_MainActivity_openDevice(JNIEnv *env,
 		jobject this) {
-	// Open device file
 	int fd = open(DEVICE_FILE(DEVICE_NAME), O_RDWR);
-	// int fd = open("/dev/hangman", O_RDWR);
+
 	if (fd == -1) {
 		LOGV("Error opening device file\n");
 		return -1;
 	}
 	return fd;
-	return 1;
 }
 
+/*
+ * Calls `ioctl()` to wait for Module's input and `read()` to get the data from the Module.
+ */
 void JNICALL Java_com_example_hangman_MainActivity_startHangman(JNIEnv *env,
 		jobject this, jint fd, jobject ret) {
 	struct _payload {
@@ -78,7 +82,9 @@ void JNICALL Java_com_example_hangman_MainActivity_startHangman(JNIEnv *env,
 	return;
 }
 
+/*
+ * Closes device file.
+ */
 void JNICALL Java_com_example_hangman_MainActivity_closeDevice(JNIEnv *env, jobject this, jint fd) {
-	// Close device file
 	close(fd);
 }

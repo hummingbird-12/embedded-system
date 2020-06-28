@@ -30,6 +30,9 @@ public class MainActivity extends Activity {
 	
 	private int maxScore = 0;
 
+	/*
+	 * Message handler
+	 */
 	private Handler mainHandler = new Handler() {
 		public void handleMessage(Message msg) {
 			if (msg.what == 0 && msg.arg1 == 1) {
@@ -60,12 +63,18 @@ public class MainActivity extends Activity {
 		}
 	};
 	
+	/*
+	 * Payload between Module and App
+	 */
 	class Payload {
 		String word;
 		int status;
 		int score;
 	}
 
+	/*
+	 * Secondary thread to wait for Module's input
+	 */
 	class InputThread extends Thread {
 		Handler handler;
 
@@ -146,6 +155,9 @@ public class MainActivity extends Activity {
 		this.addGame("");
 	}
 
+	/*
+	 * Add a new game to the list
+	 */
 	private void addGame(String word) {
 		Log.i("HANGMAN", "[addGame] word: " + word);
 
@@ -155,6 +167,9 @@ public class MainActivity extends Activity {
 		adapter.notifyDataSetChanged();
 	}
 
+	/*
+	 * Update the last game
+	 */
 	private void updatelastGame(String word) {
 		Log.i("HANGMAN", "[updatelastGame] word: " + word);
 
@@ -163,6 +178,9 @@ public class MainActivity extends Activity {
 		adapter.notifyDataSetChanged();
 	}
 
+	/*
+	 * Update last game list with score
+	 */
 	private void updateGameList(String word, int score) {
 		Log.i("HANGMAN", "[updateGameList] word: " + word + "  score: "
 				+ String.valueOf(score));
@@ -176,6 +194,9 @@ public class MainActivity extends Activity {
 		maxScore = score;
 	}
 
+	/*
+	 * Exit hangman game
+	 */
 	private void exitHangman() {
 		Log.i("HANGMAN", "[exitHangman] exiting");
 		

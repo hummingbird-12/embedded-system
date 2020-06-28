@@ -9,6 +9,9 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+/*
+ * Adapter to feed the ListView of MainActivity
+ */
 public class GameListAdapter extends ArrayAdapter<String> {
 	private final Activity context;
 	private final List<String> words;
@@ -22,6 +25,9 @@ public class GameListAdapter extends ArrayAdapter<String> {
 		this.scores = scores;
 	}
 	
+	/*
+	 * Inflate a single row
+	 */
 	public View getView(int position, View view, ViewGroup parent) {		
 		LayoutInflater inflater = context.getLayoutInflater();
 		View rowView = inflater.inflate(R.layout.game_list_entry, null, true);
